@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Packages the macOS launcher: Horizon.app (the binary, Info.plist, the icon), signed, then the
-# two release assets, horizon-launcher-macos-ARCH.zip (what the launcher updates itself from;
-# older launchers find the binary inside it) and horizon-launcher-macos-ARCH.dmg (the installer:
+# two release assets, shadowx-launcher-macos-ARCH.zip (what the launcher updates itself from;
+# older launchers find the binary inside it) and shadowx-launcher-macos-ARCH.dmg (the installer:
 # the app and an Applications link over a background, to drag one onto the other). ARCH is the
 # binary's: arm64 (Apple Silicon, the default) or x64 (Intel).
 #
@@ -26,9 +26,9 @@ case "$arch" in
 esac
 # The asset names say which Macs the binary runs on: it must be built for that processor.
 [[ "$(lipo -archs "$binary")" == "$cpu" ]] || { echo "$binary is $(lipo -archs "$binary"), not $cpu" >&2; exit 1; }
-zip=horizon-launcher-macos-$arch.zip
-dmg=$out/horizon-launcher-macos-$arch.dmg
-app=$out/Horizon.app
+zip=shadowx-launcher-macos-$arch.zip
+dmg=$out/shadowx-launcher-macos-$arch.dmg
+app=$out/ShadowX.app
 
 rm -rf "$app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
