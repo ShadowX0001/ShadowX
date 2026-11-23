@@ -43,8 +43,8 @@ LABEL = "ShadowX"
 # CI builds, signed with that repository's test key: the release key stays out of it.
 DEV_SUFFIX = ".dev"
 VARIANTS = {"dev": (DEV_SUFFIX, " Dev"), "preview": (".preview", " Preview")}
-VERSION_NAME = "0.9.0"
-VERSION_CODE = 14
+VERSION_NAME = "0.1.0"
+VERSION_CODE = 1
 MIN_SDK = 26  # AAudio (cpal)
 TARGET_SDK = 35
 PLATFORM = 36
