@@ -1,0 +1,104 @@
+name: ShadowX bootstrap and build
+
+on:
+  push:
+    paths:
+      - ".github/workflows/shadowx-bootstrap.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: shadowx-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  import-and-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout ShadowX
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config cmake ninja-build clang libclang-dev             libasound2-dev libudev-dev libx11-dev libxi-dev libxcursor-dev libxrandr-dev             libxinerama-dev libxkbcommon-dev libwayland-dev libvulkan-dev mesa-vulkan-drivers             libgtk-3-dev libssl-dev libdbus-1-dev libpipewire-0.3-dev libpulse-dev
+
+      - name: Import Starling source while preserving upstream notices
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch starling https://github.com/starling-client/starling.git /tmp/starling
+          rsync -a --exclude='.git' --exclude='.github' /tmp/starling/ ./
+          mkdir -p .github/workflows
+          cat > README.md <<'EOF'
+          # ShadowX
+
+          ShadowX is an independent launcher/client project built from the Starling codebase,
+          with Horizon upstream compatibility work. Original licenses and third-party notices
+          are retained in the source tree. See `LICENSE`, `NOTICE`, and third-party license files.
+
+          ## Project status
+
+          The source bootstrap is in progress. A successful CI job is not a claim of complete
+          Android/Desktop support; platform builds and runtime tests are tracked separately.
+
+          ## Development
+
+          - Rust workspace: Cargo workspace at the repository root.
+          - CI: GitHub Actions.
+          - Android: native Android target; requires Android SDK/NDK and device testing.
+          EOF
+          cat > SHADOWX_SCOPE.md <<'EOF'
+          # ShadowX engineering scope
+
+          This repository starts from Starling's Rust client implementation. Horizon is treated
+          as an upstream/reference source; the two repositories are not blindly overlaid because
+          Starling already contains a synchronization merge and project-specific changes.
+
+          ## Targets
+          - Preserve the upstream engine and all applicable license/copyright notices.
+          - Rebrand only after identifying the actual app metadata, package identifiers, icons,
+            launcher resources, and platform-specific manifests.
+          - Maintain Android and desktop targets independently, sharing engine code where supported.
+          - Keep Microsoft authentication and legitimate offline/local profiles as separate modes.
+          - Preserve multiplayer authentication requirements; offline profiles do not bypass online-mode
+            server authentication or game ownership checks.
+          - Build a ShadowX mod SDK only against stable engine APIs. Prefer sandboxed WASM for
+            portable user mods; native Rust extensions require platform-specific builds and review.
+          - Import Mojo control layouts only through a documented compatibility adapter; do not assume
+            its private/runtime formats are interchangeable with Starling controls.
+          - Do not claim platform support until its CI build and runtime smoke test pass.
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Bootstrap ShadowX from Starling source"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Record toolchain and workspace metadata
+        run: |
+          rustc --version
+          cargo --version
+          cargo metadata --no-deps --format-version 1 > shadowx-cargo-metadata.json
+
+      - name: Formatting check
+        run: cargo fmt --all -- --check
+
+      - name: Workspace check
+        run: cargo check --workspace --all-targets
