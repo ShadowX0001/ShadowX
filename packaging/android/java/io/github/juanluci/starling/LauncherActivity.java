@@ -1,4 +1,4 @@
-package io.github.juanluci.starling;
+package dev.shadowx.launcher;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -33,9 +33,9 @@ import java.io.OutputStream;
  */
 public final class LauncherActivity extends Activity {
     /** The game's process id: start the game again once it has ended. */
-    static final String AFTER = "io.github.juanluci.starling.AFTER";
+    static final String AFTER = "dev.shadowx.launcher.AFTER";
     /** What the restart screen says while the game starts again (StarlingActivity.restart). */
-    static final String MESSAGE = "io.github.juanluci.starling.MESSAGE";
+    static final String MESSAGE = "dev.shadowx.launcher.MESSAGE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
