@@ -18,7 +18,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 binary=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 version=$2
 out=$(mkdir -p "$3" && cd "$3" && pwd)
-name=horizon-launcher-linux-x86_64.AppImage
+name=shadowx-launcher-linux-x86_64.AppImage
 
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
@@ -27,12 +27,12 @@ mkdir -p "$appdir/usr/bin" "$appdir/usr/lib" \
   "$appdir/usr/share/applications" "$appdir/usr/share/icons"
 
 # The program.
-cp "$binary" "$appdir/usr/bin/horizon-launcher"
+cp "$binary" "$appdir/usr/bin/shadowx-launcher"
 chmod 755 "$appdir/usr/bin/horizon-launcher"
 
 # Both places: AppRun's, and the one desktop environments read once the image is unpacked.
-cp "$here/horizon-launcher.desktop" "$appdir/horizon-launcher.desktop"
-cp "$here/horizon-launcher.desktop" "$appdir/usr/share/applications/horizon-launcher.desktop"
+cp "$here/horizon-launcher.desktop" "$appdir/shadowx-launcher.desktop"
+cp "$here/horizon-launcher.desktop" "$appdir/usr/share/applications/shadowx-launcher.desktop"
 cp -R "$here/../icons/hicolor/." "$appdir/usr/share/icons/hicolor/"
 cp "$here/../icons/hicolor/512x512/apps/horizon.png" "$appdir/horizon.png"
 ln -s horizon.png "$appdir/.DirIcon"
@@ -44,7 +44,7 @@ cat > "$appdir/AppRun" <<'EOF'
 #!/bin/sh
 # AppRun: the launcher; its libraries are beside it (usr/lib, through its run path).
 here=$(dirname "$(readlink -f "$0")")
-exec "$here/usr/bin/horizon-launcher" "$@"
+exec "$here/usr/bin/shadowx-launcher" "$@"
 EOF
 chmod 755 "$appdir/AppRun"
 
