@@ -4,7 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
-description = "cargo horizon-mod new/build/run/check: make Horizon content mods (docs/modding/src/how-to/content-mods.md)"
+description = "ShadowX Mod SDK CLI: create, build, test, and package portable ShadowX content and code mods"
 
 # `cargo binstall --git https://github.com/horizon-rust/horizon cargo-horizon-mod` (#2120) reads this: the archive
 # `cargo-horizon-mod`'s workflow attaches to the `cargo-horizon-mod-v<version>` release for the runner's target,
@@ -48,3 +48,7 @@ zip = { version = "9.1.3", default-features = false, features = ["deflate"] }
 
 [lints]
 workspace = true
+
+[[bin]]
+name = "cargo-shadowx-mod"
+path = "src/shadowx_main.rs"
