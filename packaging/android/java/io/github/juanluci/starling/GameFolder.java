@@ -1,4 +1,4 @@
-package io.github.juanluci.starling;
+package dev.shadowx.launcher;
 
 import java.io.File;
 import java.io.FileNotFoundException;
