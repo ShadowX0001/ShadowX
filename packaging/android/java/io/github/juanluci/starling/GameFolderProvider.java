@@ -1,4 +1,4 @@
-package io.github.juanluci.starling;
+package dev.shadowx.launcher;
 
 import android.content.Context;
 import android.database.Cursor;
