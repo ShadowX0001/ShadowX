@@ -33,8 +33,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          git clone --depth 1 --branch starling https://github.com/starling-client/starling.git /tmp/starling
-          rsync -a --exclude='.git' --exclude='.github' /tmp/starling/ ./
+          # Import exactly once; never overwrite later ShadowX changes.
+          if [ ! -f Cargo.toml ]; then
+            git clone --depth 1 --branch starling https://github.com/starling-client/starling.git /tmp/starling
+            rsync -a --exclude='.git' --exclude='.github' /tmp/starling/ ./
+          fi
           mkdir -p .github/workflows
           cat > README.md <<'EOF'
           # ShadowX
@@ -117,3 +120,40 @@ jobs:
 
       - name: Workspace check
         run: cargo check --workspace --all-targets
+ 
+      - name: Install Android Java toolchain
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Install Android SDK and NDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install pinned Android SDK components
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;35.0.0" "ndk;28.2.13676358"
+
+      - name: Install Android Rust target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+          components: rust-src
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --locked
+
+      - name: Build ShadowX Android ARM64 development APK
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/28.2.13676358
+          RUSTC_BOOTSTRAP: "1"
+        run: python3 packaging/android/build_apk.py --dev --abi arm64-v8a
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadowx-android-arm64-dev
+          path: target/android/*.apk
+          if-no-files-found: error
+          retention-days: 14
