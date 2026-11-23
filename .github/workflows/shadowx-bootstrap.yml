@@ -80,7 +80,22 @@ jobs:
           git add -A
           if ! git diff --cached --quiet; then
             git commit -m "Bootstrap ShadowX from Starling source"
-            git push origin HEAD:${GITHUB_REF_NAME}
+            # The branch can move while the large upstream tree is being imported.
+            # Rebase the import commit onto the latest repository tip before pushing.
+            for attempt in 1 2 3; do
+              git fetch origin "${GITHUB_REF_NAME}"
+              if git rebase "origin/${GITHUB_REF_NAME}"; then
+                if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+                  break
+                fi
+              fi
+              if [ "$attempt" -eq 3 ]; then
+                echo "Unable to push imported source after 3 retries" >&2
+                exit 1
+              fi
+              git rebase --abort || true
+              sleep 5
+            done
           fi
 
       - name: Install Rust stable
