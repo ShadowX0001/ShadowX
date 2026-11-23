@@ -1,4 +1,4 @@
-package io.github.juanluci.starling;
+package dev.shadowx.launcher;
 
 import android.Manifest;
 import android.app.AlertDialog;
