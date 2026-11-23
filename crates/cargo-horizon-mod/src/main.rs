@@ -79,7 +79,7 @@ fn main() -> ExitCode {
             }
         };
     }
-    if args.first().is_some_and(|a| a == "horizon-mod") {
+    if args.first().is_some_and(|a| a == "horizon-mod" || a == "shadowx-mod") {
         args.remove(0);
     }
     let result = match args.first().map(String::as_str) {
