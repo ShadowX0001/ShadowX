@@ -35,8 +35,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 
-APPLICATION_ID = "io.github.juanluci.starling"
-LABEL = "Starling"
+APPLICATION_ID = "dev.shadowx.launcher"
+LABEL = "ShadowX"
 # --dev and --preview: an app of its own, installed beside the release (which a build signed with
 # another key cannot install over), with its own folder (StarlingActivity.sharedFolder: StarlingDev,
 # StarlingPreview) and its own sign-in and game files. Preview is what starling-client/starling's
@@ -407,7 +407,7 @@ def link_resources(aapt2, android_jar, out, assets, variant, abi=ABI):
     run(
         aapt2, "link", "-o", out / "base.apk",
         "--manifest", out / "AndroidManifest.xml",
-        "--java", out / "generated", "--custom-package", "io.github.juanluci.starling",
+        "--java", out / "generated", "--custom-package", "dev.shadowx.launcher",
         "-I", android_jar,
         "--min-sdk-version", MIN_SDK, "--target-sdk-version", TARGET_SDK,
         "--version-code", VERSION_CODE, "--version-name", version_name(variant),
@@ -576,7 +576,7 @@ def main():
     add_code(out / "base.apk", libraries, dex, out / "unsigned.apk", args.abi)
     aligned = out / "aligned.apk"
     run(tool(build_tools, "zipalign"), "-P", "16", "-f", "4", out / "unsigned.apk", aligned)
-    apk = out / f"starling{'-' + variant if variant else ''}-{VERSION_NAME}-{args.abi}.apk"
+    apk = out / f"shadowx{'-' + variant if variant else ''}-{VERSION_NAME}-{args.abi}.apk"
     sign(build_tools, aligned, apk, out)
     print(apk)
     if args.zip:
