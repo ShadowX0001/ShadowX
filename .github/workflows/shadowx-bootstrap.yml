@@ -4,6 +4,10 @@ on:
   push:
     paths:
       - ".github/workflows/shadowx-bootstrap.yml"
+      - "crates/cargo-horizon-mod/**"
+      - "packaging/android/**"
+      - "packaging/linux/**"
+      - "packaging/macos/**"
   workflow_dispatch:
 
 permissions:
