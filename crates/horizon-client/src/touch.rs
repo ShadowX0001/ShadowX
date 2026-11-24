@@ -2951,8 +2951,8 @@ pub fn import_layout_json(text: &str) -> Result<LayoutConfig, String> {
         check_type(key, boolean, "a boolean")?;
     }
     if let Some(movement) = root.get("movement").and_then(Value::as_str) {
-        if !matches!(movement, "dpad" | "analog") {
-            return Err("The 'movement' value must be 'dpad' or 'analog'.".into());
+        if !matches!(movement, "dpad" | "analog" | "auto") {
+            return Err("The 'movement' value must be 'dpad', 'analog' or 'auto'.".into());
         }
     }
     if let Some(sneak) = root.get("sneak").and_then(Value::as_str) {
@@ -2966,8 +2966,8 @@ pub fn import_layout_json(text: &str) -> Result<LayoutConfig, String> {
         }
     }
     if let Some(anchor) = root.get("anchor").and_then(Value::as_str) {
-        if !matches!(anchor, "fixed" | "auto") {
-            return Err("The 'anchor' value must be 'fixed' or 'auto'.".into());
+        if !matches!(anchor, "fixed" | "floating") {
+            return Err("The 'anchor' value must be 'fixed' or 'floating'.".into());
         }
     }
 
@@ -3059,6 +3059,14 @@ mod external_layout_import_tests {
             imported.buttons.iter().find(|(button, _)| *button == Button::Jump).unwrap().1.x,
             0.4
         );
+    }
+
+    #[test]
+    fn exported_default_layout_can_be_imported_again() {
+        let original = LayoutConfig::default();
+        let exported = original.to_json();
+        let imported = import_layout_json(&exported).unwrap();
+        assert_eq!(imported, original);
     }
 
     #[test]
