@@ -1,4 +1,4 @@
-//! Embeds Horizon's icon (`packaging/icons/horizon.ico`) in the Windows executables, as icon
+//! Embeds the launcher icon (`packaging/icons/horizon.ico`) in the Windows executables, as icon
 //! resource 1: Explorer and the task bar show it, and the window takes it as its icon.
 fn main() {
     println!("cargo:rerun-if-env-changed=HORIZON_LAUNCHER_REPOSITORY");
