@@ -2909,8 +2909,8 @@ mod tests {
 
 
 // Strict entry point for user-supplied control-layout files. Keep from_json permissive for
-// old in-game settings migrations; external imports must not silently turn unrelated or corrupt
-// JSON files into a default layout.
+// old in-game settings migrations; external imports must not silently turn malformed values
+// into a default layout.
 pub fn import_layout_json(text: &str) -> Result<LayoutConfig, String> {
     const MAX_LAYOUT_BYTES: usize = 1024 * 1024;
     if text.len() > MAX_LAYOUT_BYTES {
@@ -2921,38 +2921,125 @@ pub fn import_layout_json(text: &str) -> Result<LayoutConfig, String> {
     let root = value
         .as_object()
         .ok_or_else(|| "Control layout must be a JSON object.".to_string())?;
-    let recognized = ["stick", "buttons", "movement", "interact", "custom", "mods"]
-        .iter()
-        .any(|key| root.contains_key(*key));
+    let recognized = [
+        "stick", "buttons", "movement", "interact", "custom", "mods",
+        "opacity", "sneak", "anchor", "vibrate", "gyro", "three_fingers",
+    ]
+    .iter()
+    .any(|key| root.contains_key(*key));
     if !recognized {
         return Err("This JSON file does not contain a supported touch-control layout.".into());
     }
-    if let Some(buttons) = root.get("buttons") {
-        if !buttons.is_object() {
-            return Err("The 'buttons' field must be an object.".into());
+
+    let check_type = |key: &str, valid: fn(&Value) -> bool, expected: &str| {
+        if let Some(value) = root.get(key) {
+            if !valid(value) {
+                return Err(format!("The '{key}' field must be {expected}."));
+            }
+        }
+        Ok(())
+    };
+    let number = |v: &Value| v.is_number();
+    let string = |v: &Value| v.is_string();
+    let boolean = |v: &Value| v.is_boolean();
+    check_type("opacity", number, "a number")?;
+    check_type("movement", string, "a string ('dpad' or 'analog')")?;
+    check_type("sneak", string, "a string ('hold' or 'toggle')")?;
+    check_type("interact", string, "a string ('tap' or 'crosshair')")?;
+    check_type("anchor", string, "a string ('fixed' or 'auto')")?;
+    for key in ["vibrate", "gyro", "three_fingers"] {
+        check_type(key, boolean, "a boolean")?;
+    }
+    if let Some(movement) = root.get("movement").and_then(Value::as_str) {
+        if !matches!(movement, "dpad" | "analog") {
+            return Err("The 'movement' value must be 'dpad' or 'analog'.".into());
         }
     }
+    if let Some(sneak) = root.get("sneak").and_then(Value::as_str) {
+        if !matches!(sneak, "hold" | "toggle") {
+            return Err("The 'sneak' value must be 'hold' or 'toggle'.".into());
+        }
+    }
+    if let Some(interact) = root.get("interact").and_then(Value::as_str) {
+        if !matches!(interact, "tap" | "crosshair") {
+            return Err("The 'interact' value must be 'tap' or 'crosshair'.".into());
+        }
+    }
+    if let Some(anchor) = root.get("anchor").and_then(Value::as_str) {
+        if !matches!(anchor, "fixed" | "auto") {
+            return Err("The 'anchor' value must be 'fixed' or 'auto'.".into());
+        }
+    }
+
+    let validate_place = |place: &Value, field: &str| -> Result<(), String> {
+        let object = place.as_object()
+            .ok_or_else(|| format!("The '{field}' entry must be an object."))?;
+        for key in ["x", "y", "size", "opacity"] {
+            if object.get(key).is_some_and(|v| !v.is_number()) {
+                return Err(format!("The '{field}.{key}' value must be a number."));
+            }
+        }
+        if let Some(show) = object.get("show") {
+            if !matches!(show.as_str(), Some("on" | "ghost" | "off")) {
+                return Err(format!("The '{field}.show' value must be 'on', 'ghost' or 'off'."));
+            }
+        }
+        if object.get("visible").is_some_and(|v| !v.is_boolean()) {
+            return Err(format!("The '{field}.visible' value must be a boolean."));
+        }
+        Ok(())
+    };
+
     if let Some(stick) = root.get("stick") {
-        if !stick.is_object() {
-            return Err("The 'stick' field must be an object.".into());
+        validate_place(stick, "stick")?;
+    }
+    if let Some(buttons) = root.get("buttons") {
+        let buttons = buttons.as_object()
+            .ok_or_else(|| "The 'buttons' field must be an object.".to_string())?;
+        for (name, place) in buttons {
+            validate_place(place, &format!("buttons.{name}"))?;
         }
     }
     if let Some(custom) = root.get("custom") {
-        if !custom.is_array() {
-            return Err("The 'custom' field must be an array.".into());
-        }
-        if custom.as_array().is_some_and(|items| items.len() > 64) {
+        let custom = custom.as_array()
+            .ok_or_else(|| "The 'custom' field must be an array.".to_string())?;
+        if custom.len() > 64 {
             return Err("A layout can contain at most 64 custom controls.".into());
+        }
+        for (index, item) in custom.iter().enumerate() {
+            let object = item.as_object()
+                .ok_or_else(|| format!("Custom control {index} must be an object."))?;
+            let action = ["key", "input", "send"].iter()
+                .any(|key| object.get(*key).is_some_and(Value::is_string));
+            if !action {
+                return Err(format!("Custom control {index} must define a string 'key', 'input' or 'send' action."));
+            }
+            for key in ["key", "input", "send", "icon"] {
+                if object.get(key).is_some_and(|v| !v.is_string()) {
+                    return Err(format!("Custom control {index} field '{key}' must be a string."));
+                }
+            }
+            for key in ["image", "pressed", "toggle"] {
+                if object.get(key).is_some_and(|v| !v.is_boolean()) {
+                    return Err(format!("Custom control {index} field '{key}' must be a boolean."));
+                }
+            }
+            if object.get("id").is_some_and(|v| v.as_u64().is_none()) {
+                return Err(format!("Custom control {index} field 'id' must be an unsigned integer."));
+            }
         }
     }
     if let Some(mods) = root.get("mods") {
-        if !mods.is_object() {
-            return Err("The 'mods' field must be an object.".into());
-        }
-        if mods.as_object().is_some_and(|items| items.len() > 256) {
+        let mods = mods.as_object()
+            .ok_or_else(|| "The 'mods' field must be an object.".to_string())?;
+        if mods.len() > 256 {
             return Err("A layout can contain at most 256 mod controls.".into());
         }
+        for (name, place) in mods {
+            validate_place(place, &format!("mods.{name}"))?;
+        }
     }
+
     Ok(LayoutConfig::from_json(text))
 }
 
@@ -2963,7 +3050,7 @@ mod external_layout_import_tests {
     #[test]
     fn imports_a_supported_layout_and_clamps_positions() {
         let imported = import_layout_json(
-            r#"{"stick":{"x":4.0,"y":-1.0},"buttons":{"jump":{"x":0.4}}}"#,
+            r#"{\"stick\":{\"x\":4.0,\"y\":-1.0},\"buttons\":{\"jump\":{\"x\":0.4}}}"#,
         )
         .unwrap();
         assert_eq!(imported.stick.x, 1.0);
@@ -2975,18 +3062,30 @@ mod external_layout_import_tests {
     }
 
     #[test]
-    fn rejects_unrelated_json_instead_of_resetting_controls() {
-        assert!(import_layout_json(r#"{"username":"player"}"#).is_err());
+    fn rejects_unrelated_and_corrupt_json() {
+        assert!(import_layout_json(r#"{\"username\":\"player\"}"#).is_err());
         assert!(import_layout_json("not json").is_err());
         assert!(import_layout_json("[]").is_err());
     }
 
     #[test]
-    fn rejects_malformed_control_sections_and_oversized_custom_lists() {
-        assert!(import_layout_json(r#"{"buttons":[]}"#).is_err());
-        assert!(import_layout_json(r#"{"stick":false}"#).is_err());
-        let custom = serde_json::json!({"custom": vec![serde_json::json!({}); 65]});
+    fn rejects_invalid_types_and_enum_values_instead_of_silently_resetting() {
+        assert!(import_layout_json(r#"{\"buttons\":[]}"#).is_err());
+        assert!(import_layout_json(r#"{\"stick\":false}"#).is_err());
+        assert!(import_layout_json(r#"{\"movement\":true}"#).is_err());
+        assert!(import_layout_json(r#"{\"movement\":\"teleport\"}"#).is_err());
+        assert!(import_layout_json(r#"{\"interact\":\"unknown\"}"#).is_err());
+        assert!(import_layout_json(r#"{\"stick\":{\"x\":\"left\"}}"#).is_err());
+        assert!(import_layout_json(r#"{\"buttons\":{\"jump\":{\"show\":\"hidden\"}}}"#).is_err());
+        assert!(import_layout_json(r#"{\"custom\":[{}]}"#).is_err());
+    }
+
+    #[test]
+    fn enforces_custom_mod_and_file_size_limits() {
+        let custom = serde_json::json!({"custom": (0..65).map(|id| serde_json::json!({"id":id,"key":"key.jump"})).collect::<Vec<_>>()});
         assert!(import_layout_json(&custom.to_string()).is_err());
+        let mods = serde_json::json!({"mods": (0..257).map(|id| (format!("mod:{id}"), serde_json::json!({}))).collect::<serde_json::Map<String, Value>>()});
+        assert!(import_layout_json(&mods.to_string()).is_err());
         assert!(import_layout_json(&" ".repeat(1024 * 1024 + 1)).is_err());
     }
 }
