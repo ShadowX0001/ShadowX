@@ -19,7 +19,7 @@ identity! {
     LAUNCHER_FOLDER: "shadowx/launcher" => "horizon-fork-arismoko/launcher",
     GAME_FOLDER: "shadowx/game" => "horizon-fork-arismoko/game",
     PUBLISHER: "ShadowX" => "arismoko",
-    UNINSTALL_KEY: "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\HorizonLauncher" => "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\ArismokoHorizonForkLauncher",
+    UNINSTALL_KEY: "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\ShadowXLauncher" => "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\ArismokoHorizonForkLauncher",
     INSTALL_KEY: "Software\\ShadowX\\Launcher" => "Software\\ArismokoHorizonFork\\Launcher",
     REGISTRY_PARENT: "Software\\ShadowX" => "Software\\ArismokoHorizonFork",
     UNINSTALL_PREFIX: "shadowx-launcher-uninstall-" => "horizon-fork-launcher-uninstall-",
