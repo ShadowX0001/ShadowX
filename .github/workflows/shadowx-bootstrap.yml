@@ -130,6 +130,9 @@ jobs:
       - name: Workspace check
         run: cargo check --workspace
 
+      - name: Check ShadowX Mod SDK executable
+        run: cargo check -p cargo-horizon-mod --bin cargo-shadowx-mod
+
       - name: Compile Mod SDK tests
         run: cargo test -p cargo-horizon-mod --no-run
  
