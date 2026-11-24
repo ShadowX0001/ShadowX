@@ -247,10 +247,10 @@ public final class LauncherActivity extends Activity {
                     (cy - size * 0.065f) * u, paint);
 
             float titleY = cy + size * 0.68f;
-            text("STARLING", cx * u, titleY * u, 24f * u,
+            text("SHADOWX", cx * u, titleY * u, 24f * u,
                     Typeface.create("sans-serif-medium", Typeface.BOLD), textColor);
             float subY = titleY + 32f;
-            text("RUST EDITION  •  ANDROID LAUNCHER", cx * u, subY * u, 11.5f * u,
+            text("MINECRAFT  •  ANDROID EDITION", cx * u, subY * u, 11.5f * u,
                     Typeface.create("sans-serif-medium", Typeface.NORMAL), alpha(muted, 0.9f));
             // Android is switching processes, so there is no percentage to report.
             float t = (SystemClock.uptimeMillis() - start) / 1000f;
