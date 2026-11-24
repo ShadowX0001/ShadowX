@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Build Starling's Android APK (Horizon on Android): horizon-android as a
+"""Build ShadowX's Android APK: horizon-android as a
 NativeActivity library.
 
-The APK holds the game library, the launcher icon, Starling Visuals and what prepares the game
+The APK holds the game library, the launcher icon, ShadowX Visuals and what prepares the game
 files on the phone (the Java launchers in native/ and original exporter classes/sources), and, on
 arm64-v8a, the libadrenotools Vulkan hook libraries for custom GPU drivers. Nothing of
 Minecraft: the resources
@@ -12,8 +12,8 @@ horizon-prepare makes from the player's own copy are made on the phone, or copie
     python3 packaging/android/build_apk.py --no-build      # package the library built last
     python3 packaging/android/build_apk.py --install       # and adb install it
     python3 packaging/android/build_apk.py --zip           # and a zip of it to send
-    python3 packaging/android/build_apk.py --dev           # Starling Dev, beside the release
-    python3 packaging/android/build_apk.py --preview       # Starling Preview, the organisation's CI build
+    python3 packaging/android/build_apk.py --dev           # ShadowX Dev, beside the release
+    python3 packaging/android/build_apk.py --preview       # ShadowX Preview, the organisation's CI build
 
 Needs the Android SDK (ANDROID_HOME, else the default folder) with the build-tools, platform and
 NDK pinned below, the aarch64-linux-android Rust target, cargo-ndk and a JDK (javac, keytool,
@@ -430,7 +430,7 @@ def add_code(base, libraries, dex, unsigned, abi=ABI):
 
 def sign(build_tools, aligned, apk, out):
     keystore = os.environ.get("HORIZON_ANDROID_KEYSTORE")
-    alias = os.environ.get("HORIZON_ANDROID_KEY_ALIAS", "horizon-debug")
+    alias = os.environ.get("HORIZON_ANDROID_KEY_ALIAS", "shadowx-debug")
     env = dict(os.environ)
     if not keystore:
         keystore = out / "debug.keystore"
@@ -439,7 +439,7 @@ def sign(build_tools, aligned, apk, out):
             run(
                 "keytool", "-genkeypair", "-keystore", keystore, "-storepass", "android",
                 "-keypass", "android", "-alias", alias, "-keyalg", "RSA", "-keysize", "2048",
-                "-validity", "10000", "-dname", "CN=Horizon Android debug",
+                "-validity", "10000", "-dname", "CN=ShadowX Android debug",
             )
     apksigner = tool(build_tools, "apksigner")
     run(
@@ -516,11 +516,11 @@ def main():
     )
     parser.add_argument(
         "--dev", action="store_true",
-        help=f"Starling Dev ({APPLICATION_ID}{DEV_SUFFIX}), installed beside the release",
+        help=f"ShadowX Dev ({APPLICATION_ID}{DEV_SUFFIX}), installed beside the release",
     )
     parser.add_argument(
         "--preview", action="store_true",
-        help=f"Starling Preview ({APPLICATION_ID}{VARIANTS['preview'][0]}), the organisation's CI build",
+        help=f"ShadowX Preview ({APPLICATION_ID}{VARIANTS['preview'][0]}), the organisation's CI build",
     )
     parser.add_argument("--abi", choices=TARGETS, default=ABI, help="Android ABI (default: arm64-v8a)")
     args = parser.parse_args()
