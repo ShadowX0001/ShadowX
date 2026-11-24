@@ -8,7 +8,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>ShadowX</string>
 	<key>CFBundleExecutable</key>
-	<string>horizon-launcher</string>
+	<string>shadowx-launcher</string>
 	<key>CFBundleIconFile</key>
 	<string>horizon</string>
 	<key>CFBundleIdentifier</key>
