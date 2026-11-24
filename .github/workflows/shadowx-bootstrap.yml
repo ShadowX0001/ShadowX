@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - ".github/workflows/shadowx-bootstrap.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
       - "crates/cargo-horizon-mod/**"
       - "packaging/android/**"
       - "packaging/linux/**"
