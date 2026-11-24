@@ -37,7 +37,7 @@ cargo shadowx-mod build --wasm
 
 For a native code mod, use `--template native`. Native mods are platform-specific and should only use declared/stable mod APIs; pin and check the target game build before distributing them.
 
-Useful commands include `cargo shadowx-mod hooks`, `cargo shadowx-mod sdk`, `cargo shadowx-mod fits` and `cargo shadowx-mod run`. Run `cargo shadowx-mod` without arguments for the CLI's current command help.
+Useful commands include `cargo shadowx-mod hooks`, `cargo shadowx-mod sdk`, `cargo shadowx-mod fits` and `cargo shadowx-mod run`. Run `cargo shadowx-mod --help` to see the CLI's current command help.
 
 ## Important platform boundaries
 
