@@ -87,7 +87,7 @@ fn main() -> ExitCode {
     }
     let result = match args.first().map(String::as_str) {
         Some("--help" | "-h") => {
-            println!("ShadowX Mod SDK\\n\\nUsage: cargo shadowx-mod <command> [options]\\n\\nCommands: new, build, run, check, hooks, sdk, fits, update, inject, internals, registry, use-jar, wasm-std\\n\\nUse `cargo shadowx-mod <command> --help` where supported, or see the repository README.");
+            println!("ShadowX Mod SDK\n\nUsage: cargo shadowx-mod <command> [options]\n\nCommands: new, build, run, check, hooks, sdk, fits, update, inject, internals, registry, use-jar, wasm-std\n\nUse `cargo shadowx-mod <command> --help` where supported, or see the repository README.");
             Ok(())
         }
         Some("new") => new(&args[1..]).and_then(|code| match code {
