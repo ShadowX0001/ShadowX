@@ -142,7 +142,6 @@ jobs:
  
       - name: Check desktop launcher workspace
         run: |
-          cargo fmt --manifest-path launcher/Cargo.toml --all
           cargo fmt --manifest-path launcher/Cargo.toml --all -- --check
           cargo check --manifest-path launcher/Cargo.toml
 
