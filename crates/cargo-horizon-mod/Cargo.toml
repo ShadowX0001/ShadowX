@@ -51,4 +51,4 @@ workspace = true
 
 [[bin]]
 name = "cargo-shadowx-mod"
-path = "src/shadowx_main.rs"
+path = "src/main.rs"
