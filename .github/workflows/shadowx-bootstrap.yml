@@ -6,6 +6,7 @@ on:
       - ".github/workflows/shadowx-bootstrap.yml"
       - "Cargo.toml"
       - "Cargo.lock"
+      - "launcher/**"
       - "crates/cargo-horizon-mod/**"
       - "packaging/android/**"
       - "packaging/linux/**"
@@ -129,6 +130,11 @@ jobs:
       - name: Workspace check
         run: cargo check --workspace --all-targets
  
+      - name: Check desktop launcher workspace
+        run: |
+          cargo fmt --manifest-path launcher/Cargo.toml --all -- --check
+          cargo check --manifest-path launcher/Cargo.toml --all-targets
+
       - name: Install Android Java toolchain
         uses: actions/setup-java@v4
         with:
