@@ -2906,3 +2906,87 @@ mod tests {
         );
     }
 }
+
+
+// Strict entry point for user-supplied control-layout files. Keep from_json permissive for
+// old in-game settings migrations; external imports must not silently turn unrelated or corrupt
+// JSON files into a default layout.
+pub fn import_layout_json(text: &str) -> Result<LayoutConfig, String> {
+    const MAX_LAYOUT_BYTES: usize = 1024 * 1024;
+    if text.len() > MAX_LAYOUT_BYTES {
+        return Err("Control layout is larger than 1 MiB.".into());
+    }
+    let value: Value = serde_json::from_str(text)
+        .map_err(|error| format!("Invalid control-layout JSON: {error}"))?;
+    let root = value
+        .as_object()
+        .ok_or_else(|| "Control layout must be a JSON object.".to_string())?;
+    let recognized = ["stick", "buttons", "movement", "interact", "custom", "mods"]
+        .iter()
+        .any(|key| root.contains_key(*key));
+    if !recognized {
+        return Err("This JSON file does not contain a supported touch-control layout.".into());
+    }
+    if let Some(buttons) = root.get("buttons") {
+        if !buttons.is_object() {
+            return Err("The 'buttons' field must be an object.".into());
+        }
+    }
+    if let Some(stick) = root.get("stick") {
+        if !stick.is_object() {
+            return Err("The 'stick' field must be an object.".into());
+        }
+    }
+    if let Some(custom) = root.get("custom") {
+        if !custom.is_array() {
+            return Err("The 'custom' field must be an array.".into());
+        }
+        if custom.as_array().is_some_and(|items| items.len() > 64) {
+            return Err("A layout can contain at most 64 custom controls.".into());
+        }
+    }
+    if let Some(mods) = root.get("mods") {
+        if !mods.is_object() {
+            return Err("The 'mods' field must be an object.".into());
+        }
+        if mods.as_object().is_some_and(|items| items.len() > 256) {
+            return Err("A layout can contain at most 256 mod controls.".into());
+        }
+    }
+    Ok(LayoutConfig::from_json(text))
+}
+
+#[cfg(test)]
+mod external_layout_import_tests {
+    use super::*;
+
+    #[test]
+    fn imports_a_supported_layout_and_clamps_positions() {
+        let imported = import_layout_json(
+            r#"{"stick":{"x":4.0,"y":-1.0},"buttons":{"jump":{"x":0.4}}}"#,
+        )
+        .unwrap();
+        assert_eq!(imported.stick.x, 1.0);
+        assert_eq!(imported.stick.y, 0.0);
+        assert_eq!(
+            imported.buttons.iter().find(|(button, _)| *button == Button::Jump).unwrap().1.x,
+            0.4
+        );
+    }
+
+    #[test]
+    fn rejects_unrelated_json_instead_of_resetting_controls() {
+        assert!(import_layout_json(r#"{"username":"player"}"#).is_err());
+        assert!(import_layout_json("not json").is_err());
+        assert!(import_layout_json("[]").is_err());
+    }
+
+    #[test]
+    fn rejects_malformed_control_sections_and_oversized_custom_lists() {
+        assert!(import_layout_json(r#"{"buttons":[]}"#).is_err());
+        assert!(import_layout_json(r#"{"stick":false}"#).is_err());
+        let custom = serde_json::json!({"custom": vec![serde_json::json!({}); 65]});
+        assert!(import_layout_json(&custom.to_string()).is_err());
+        assert!(import_layout_json(&" ".repeat(1024 * 1024 + 1)).is_err());
+    }
+}
