@@ -92,7 +92,7 @@ const LAUNCHER_ENTRY: &str = crate::identity::DESKTOP_ENTRY;
 const GAME_ENTRY: &str = if cfg!(horizon_fork_launcher) {
     "horizon-fork-arismoko.desktop"
 } else {
-    "horizon.desktop"
+    "shadowx.desktop"
 };
 const GAME_ENTRY_TEXT: &str = include_str!("../../packaging/linux/horizon.desktop");
 
@@ -124,7 +124,7 @@ pub fn launcher_entry(exe: &Path) -> String {
          Type=Application\n\
          Name=Horizon\n\
          GenericName=Game launcher\n\
-         Comment=Install, prepare and play Horizon, Minecraft: Java Edition {minecraft} rewritten in Rust\n\
+         Comment=Install, prepare and play ShadowX, Minecraft: Java Edition {minecraft} rewritten in Rust\n\
          Exec={}\n\
          TryExec={}\n\
          Icon=horizon\n\
