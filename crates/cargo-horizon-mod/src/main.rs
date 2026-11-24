@@ -129,9 +129,9 @@ fn main() -> ExitCode {
                             .collect::<Vec<_>>(),
                     )
                 })
-                .map(|()| println!("Run `cargo horizon-mod check`."))
+                .map(|()| println!("Run `cargo shadowx-mod check`."))
         }
-        _ => Err("usage: cargo horizon-mod new <path> [--name \"Name\"] [--template content|native|wasm [--horizon <build>]] | update [--horizon <build>] | inject update [--accept <id>]… | inject sync --repo <game checkout> | inject add <at> --kind <kind> [--call <canonical callee>] [--nth N] [--with <fn>] | internals sync [--repo <path>] | internals add <path>… [--kind <kind>] | build [--wasm] | wasm-std <out.wasm> | run [--game <horizon-client>] [-- <game args>] | check [--uses] | check <file> [--kind <kind>] [--key <public key> --signature <file.minisig>] [--json] | hooks <text> [--all] | sdk diff <build> <build> | fits [<file.hmod>] [--build <name>]… | registry build|review|check|list | use-jar <path>".into()),
+        _ => Err("usage: cargo shadowx-mod new <path> [--name \"Name\"] [--template content|native|wasm [--horizon <build>]] | update [--horizon <build>] | inject update [--accept <id>]… | inject sync --repo <game checkout> | inject add <at> --kind <kind> [--call <canonical callee>] [--nth N] [--with <fn>] | internals sync [--repo <path>] | internals add <path>… [--kind <kind>] | build [--wasm] | wasm-std <out.wasm> | run [--game <horizon-client>] [-- <game args>] | check [--uses] | check <file> [--kind <kind>] [--key <public key> --signature <file.minisig>] [--json] | hooks <text> [--all] | sdk diff <build> <build> | fits [<file.hmod>] [--build <name>]… | registry build|review|check|list | use-jar <path>".into()),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
@@ -170,7 +170,7 @@ fn new(args: &[String]) -> Result<Option<PathBuf>, String> {
     let path = args
         .first()
         .filter(|a| !a.starts_with("--"))
-        .ok_or("cargo horizon-mod new <path>")?;
+        .ok_or("cargo shadowx-mod new <path>")?;
     let dir = Path::new(path);
     if dir.exists() {
         return Err(format!("{} already exists", dir.display()));
@@ -257,7 +257,7 @@ fn new(args: &[String]) -> Result<Option<PathBuf>, String> {
         Manifest::parse(&std::fs::read_to_string(dir.join(MANIFEST)).map_err(|e| e.to_string())?)?;
     Content::read(dir, &manifest)?;
     println!(
-        "Created {} (mod id {id}). Next: cd {path} && cargo horizon-mod build, then copy \
+        "Created {} (mod id {id}). Next: cd {path} && cargo shadowx-mod build, then copy \
          target/horizon-mod/{id}.hmod into your game folder's horizon-mods/ \
          (docs/modding/src/start/first-content-mod.md)",
         dir.display()
@@ -344,7 +344,7 @@ fn new_code(
         (
             include_str!("../template/wasm/horizon-mod.toml").to_owned(),
             format!(
-                "\n# The SDK build this mod is made for: `cargo horizon-mod update` moves it.\n[package.metadata.horizon]\nsdk = \"{horizon}\"\n"
+                "\n# The SDK build this mod is made for: `cargo shadowx-mod update` moves it.\n[package.metadata.horizon]\nsdk = \"{horizon}\"\n"
             ),
         )
     };
@@ -370,11 +370,11 @@ fn new_code(
             dir.display()
         )
     } else {
-        format!("cd {} && cargo horizon-mod build --wasm", dir.display())
+        format!("cd {} && cargo shadowx-mod build --wasm", dir.display())
     };
     println!(
         "Created {} ({} mod id {id}). Your editor resolves horizon-mod-api once the SDK is in .horizon/sdk/: \
-         any cargo horizon-mod command fetches it in a fresh clone. Next: {next}",
+         any cargo shadowx-mod command fetches it in a fresh clone. Next: {next}",
         dir.display(),
         if native { "native" } else { "wasm" },
     );
@@ -431,7 +431,7 @@ fn check(args: &[String]) -> Result<(), String> {
     let file = args
         .first()
         .filter(|a| !a.starts_with("--"))
-        .ok_or("cargo horizon-mod check <file>")?;
+        .ok_or("cargo shadowx-mod check <file>")?;
     let path = Path::new(file);
     let kind = match flag(args, "--kind") {
         Some(k) => horizon_mod_package::index::Kind::from(k.to_string()),
