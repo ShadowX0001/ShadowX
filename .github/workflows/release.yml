@@ -62,7 +62,8 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force release-assets | Out-Null
           Copy-Item "launcher/target/release/${{ matrix.binary }}" release-assets/
-          Compress-Archive -Path release-assets/${{ matrix.binary }} -DestinationPath "release-assets/ShadowX-Windows-x64.zip"
+          Compress-Archive -Path "release-assets/${{ matrix.binary }}" -DestinationPath "release-assets/ShadowX-Windows-x64.zip"
+          Remove-Item "release-assets/${{ matrix.binary }}"
 
       - name: Package Unix launcher
         if: runner.os != 'Windows'
