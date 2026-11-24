@@ -32,7 +32,7 @@ app=$out/ShadowX.app
 
 rm -rf "$app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
-cp "$binary" "$app/Contents/MacOS/horizon-launcher"
+cp "$binary" "$app/Contents/MacOS/shadowx-launcher"
 chmod 755 "$app/Contents/MacOS/horizon-launcher"
 cp "$here/../icons/horizon.icns" "$app/Contents/Resources/horizon.icns"
 sed "s/@VERSION@/$version/g" "$here/Info.plist" > "$app/Contents/Info.plist"
