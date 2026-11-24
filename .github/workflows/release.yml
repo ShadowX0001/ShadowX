@@ -54,7 +54,7 @@ jobs:
             launcher -> launcher/target
 
       - name: Build desktop launcher
-        run: cargo build --locked --release --manifest-path launcher/Cargo.toml
+        run: cargo build --release --manifest-path launcher/Cargo.toml
 
       - name: Package Windows launcher
         if: runner.os == 'Windows'
