@@ -1,7 +1,7 @@
 //! ShadowX product identity; storage and update namespaces are isolated from other launchers.
 macro_rules! identity {
     ($($name:ident: $upstream:literal => $fork:literal),* $(,)?) => {$ (
-        pub const $name: &str = if cfg!(horizon_fork_launcher) { $fork } else { $upstream };
+        pub const $name: &str = if cfg!(horizon_fork_launcher) { $upstream } else { $fork };
     )*};
 }
 identity! {
