@@ -1,4 +1,4 @@
-//! `cargo horizon-mod`: make Horizon content mods (`docs/modpacks.md`): blocks,
+//! `cargo shadowx-mod` (binary `cargo-shadowx-mod`): make portable ShadowX content mods (`docs/modpacks.md`): blocks,
 //! items, data and assets, no code. Code mods are native (docs/modding/src/how-to/native-mods.md).
 //!
 //! - `new <path> [--name "Name"]`: a content mod from the template; with
@@ -53,7 +53,7 @@ fn main() -> ExitCode {
     // The uses scan parses a mod's source in a child, this program started again: run its part
     // and exit.
     let entry = mod_surface::child::child_entry();
-    // Cargo runs `cargo-horizon-mod horizon-mod <args>`.
+    // Cargo runs `cargo-shadowx-mod shadowx-mod <args>` (the legacy horizon-mod alias is retained).
     let mut args: Vec<String> = std::env::args().skip(1).collect();
     if std::env::var_os("HORIZON_GROUP_WRAPPER").is_some()
         // `rustc`, or `rustc.exe` on Windows.
