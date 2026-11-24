@@ -17,7 +17,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: shadowx-bootstrap
+  group: shadowx-bootstrap-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:
