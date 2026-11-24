@@ -1,41 +1,21 @@
-# Horizon launcher
+# ShadowX desktop launcher
 
-## arismoko fork builds
+ShadowX is an independent launcher/client project based on the open-source
+Horizon/Starling codebase. The desktop launcher has its own Cargo workspace and
+installs compatible ShadowX engine builds, prepares game data from the player's
+own Minecraft files, and starts a client or dedicated server.
 
-**Horizon Fork Launcher (arismoko)** is not the official Horizon launcher. Fork
-builds start with empty settings and accounts; they do not import official tokens.
-Their launcher and game data live under `horizon-fork-arismoko/launcher` and
-`horizon-fork-arismoko/game`. Relocation metadata and the OS keychain service are
-separate. Explicit home overrides still work for developers.
+This repository is a work in progress. A successful source check does not mean
+that every platform package, sign-in flow, mod format, or runtime feature has
+been verified. Microsoft sign-in requires a configured application client ID;
+signed builds retain ownership checks. Offline mode is limited to the explicit
+developer flow supported by the source. No authentication or ownership checks
+are bypassed.
 
-A source-built launcher can install fork builds today. Configured Microsoft
-sign-in and signed Nightly Play arrive with the fork launcher; no release date is
-announced. Upstream has authorized use of its Microsoft application ID, supplied
-through the fork repository's `HORIZON_MSA_CLIENT_ID` variable rather than
-hard-coded in the fork. Accounts and tokens remain in this fork's separate
-storage; nothing is imported from the official launcher. A build without a
-configured ID cannot sign in. Unsigned local developer builds retain the explicit
-offline single-player switch. Signed builds retain account and ownership checks.
-
-Windows builds are **not Authenticode-signed**. Windows may show “Windows protected
-your PC” or an unknown-publisher warning. Signed checksums do not remove SmartScreen
-warnings. macOS packages are **ad-hoc signed**, without an Apple Developer ID and
-**not notarized**. Gatekeeper may block them or say Apple cannot check them for
-malicious software. No OS trust bypass is implied by a checksum signature.
-
-Build identity defaults to `arismoko/horizon`, consistently with the fork's release
-repository. Set `HORIZON_LAUNCHER_REPOSITORY=horizon-rust/horizon` at build time to
-retain upstream identity. Other values fail the build. Stage packaging with
-`python3 tools/stage_launcher_packaging.py OUTPUT --repository REPOSITORY` using
-the same repository selection. The original packaging templates and icons are
-left unchanged. The workflow passes `github.repository` to the real build selector
-and generates the corresponding build matrix. Existing signing, signature
-verification and publication gates are retained: dry runs use an ephemeral key,
-while publication uses the fork's existing signing key and still requires separate
-approval. The workflow must remain disabled until root authorizes a dispatch.
-Linux x86_64 and Windows x64 are the initial package targets; Windows ARM64 and
-macOS packages are not produced by this dry-run workflow. Any future macOS job
-must use GitHub-hosted runners, never the upstream private runner.
+Windows release packages need an Authenticode signing identity to avoid
+unknown-publisher warnings. macOS packages are ad-hoc signed unless a Developer
+ID and notarization profile are configured. Linux packages depend on the host's
+graphics driver and system libraries.
 
 A small desktop app that installs Horizon builds, prepares them from your own copy of
 Minecraft, and starts the client or a dedicated server. Built with [GPUI Fast](https://github.com/longbridge/gpui-fast),
