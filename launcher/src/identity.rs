@@ -1,4 +1,4 @@
-//! Repository-selected identity. An upstream build retains its original namespaces.
+//! ShadowX product identity; storage and update namespaces are isolated from other launchers.
 macro_rules! identity {
     ($($name:ident: $upstream:literal => $fork:literal),* $(,)?) => {$ (
         pub const $name: &str = if cfg!(horizon_fork_launcher) { $fork } else { $upstream };
@@ -28,11 +28,7 @@ identity! {
 }
 
 /// Product home used by the Windows installer's About link.
-pub const ABOUT_URL: &str = if cfg!(horizon_fork_launcher) {
-    horizon_addresses::FORK_LAUNCHER_ABOUT
-} else {
-    horizon_addresses::LAUNCHER_ABOUT
-};
+pub const ABOUT_URL: &str = "https://github.com/ShadowX0001/ShadowX";
 
 /// The complete launcher-owned suffix, not just a generic leaf selected by an override.
 /// Uninstallation keeps the existing named-folder guard for relocated data as well.
