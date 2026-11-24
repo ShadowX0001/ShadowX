@@ -2922,8 +2922,18 @@ pub fn import_layout_json(text: &str) -> Result<LayoutConfig, String> {
         .as_object()
         .ok_or_else(|| "Control layout must be a JSON object.".to_string())?;
     let recognized = [
-        "stick", "buttons", "movement", "interact", "custom", "mods",
-        "opacity", "sneak", "anchor", "vibrate", "gyro", "three_fingers",
+        "stick",
+        "buttons",
+        "movement",
+        "interact",
+        "custom",
+        "mods",
+        "opacity",
+        "sneak",
+        "anchor",
+        "vibrate",
+        "gyro",
+        "three_fingers",
     ]
     .iter()
     .any(|key| root.contains_key(*key));
@@ -2972,7 +2982,8 @@ pub fn import_layout_json(text: &str) -> Result<LayoutConfig, String> {
     }
 
     let validate_place = |place: &Value, field: &str| -> Result<(), String> {
-        let object = place.as_object()
+        let object = place
+            .as_object()
             .ok_or_else(|| format!("The '{field}' entry must be an object."))?;
         for key in ["x", "y", "size", "opacity"] {
             if object.get(key).is_some_and(|v| !v.is_number()) {
@@ -2981,7 +2992,9 @@ pub fn import_layout_json(text: &str) -> Result<LayoutConfig, String> {
         }
         if let Some(show) = object.get("show") {
             if !matches!(show.as_str(), Some("on" | "ghost" | "off")) {
-                return Err(format!("The '{field}.show' value must be 'on', 'ghost' or 'off'."));
+                return Err(format!(
+                    "The '{field}.show' value must be 'on', 'ghost' or 'off'."
+                ));
             }
         }
         if object.get("visible").is_some_and(|v| !v.is_boolean()) {
@@ -2994,43 +3007,56 @@ pub fn import_layout_json(text: &str) -> Result<LayoutConfig, String> {
         validate_place(stick, "stick")?;
     }
     if let Some(buttons) = root.get("buttons") {
-        let buttons = buttons.as_object()
+        let buttons = buttons
+            .as_object()
             .ok_or_else(|| "The 'buttons' field must be an object.".to_string())?;
         for (name, place) in buttons {
             validate_place(place, &format!("buttons.{name}"))?;
         }
     }
     if let Some(custom) = root.get("custom") {
-        let custom = custom.as_array()
+        let custom = custom
+            .as_array()
             .ok_or_else(|| "The 'custom' field must be an array.".to_string())?;
         if custom.len() > 64 {
             return Err("A layout can contain at most 64 custom controls.".into());
         }
         for (index, item) in custom.iter().enumerate() {
-            let object = item.as_object()
+            let object = item
+                .as_object()
                 .ok_or_else(|| format!("Custom control {index} must be an object."))?;
-            let action = ["key", "input", "send"].iter()
+            let action = ["key", "input", "send"]
+                .iter()
                 .any(|key| object.get(*key).is_some_and(Value::is_string));
             if !action {
-                return Err(format!("Custom control {index} must define a string 'key', 'input' or 'send' action."));
+                return Err(format!(
+                    "Custom control {index} must define a string 'key', 'input' or 'send' action."
+                ));
             }
             for key in ["key", "input", "send", "icon"] {
                 if object.get(key).is_some_and(|v| !v.is_string()) {
-                    return Err(format!("Custom control {index} field '{key}' must be a string."));
+                    return Err(format!(
+                        "Custom control {index} field '{key}' must be a string."
+                    ));
                 }
             }
             for key in ["image", "pressed", "toggle"] {
                 if object.get(key).is_some_and(|v| !v.is_boolean()) {
-                    return Err(format!("Custom control {index} field '{key}' must be a boolean."));
+                    return Err(format!(
+                        "Custom control {index} field '{key}' must be a boolean."
+                    ));
                 }
             }
             if object.get("id").is_some_and(|v| v.as_u64().is_none()) {
-                return Err(format!("Custom control {index} field 'id' must be an unsigned integer."));
+                return Err(format!(
+                    "Custom control {index} field 'id' must be an unsigned integer."
+                ));
             }
         }
     }
     if let Some(mods) = root.get("mods") {
-        let mods = mods.as_object()
+        let mods = mods
+            .as_object()
             .ok_or_else(|| "The 'mods' field must be an object.".to_string())?;
         if mods.len() > 256 {
             return Err("A layout can contain at most 256 mod controls.".into());
