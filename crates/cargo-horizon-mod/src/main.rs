@@ -1,31 +1,31 @@
-//! `cargo shadowx-mod` (binary `cargo-shadowx-mod`): make portable ShadowX content mods (`docs/modpacks.md`): blocks,
-//! items, data and assets, no code. Code mods are native (docs/modding/src/how-to/native-mods.md).
-//!
-//! - `new <path> [--name "Name"]`: a content mod from the template; with
-//!   `--template native|wasm [--horizon <build>]`, a code mod pinned to the current Nightly's
-//!   SDK unless `--horizon` names another build (`nightly-<date>` or a sha), with that SDK fetched
-//!   into `.horizon/sdk/` (`sdk_fetch.rs`).
-//! - `update [--horizon <build>]`: repin this native mod and diff/refresh declared internals.
-//! - `inject update [--accept <id>]…`: refresh declarations without repinning.
-//! - `inject sync --repo <game checkout>`: validate API injection pins against a game catalog.
-//! - `inject add <at> --kind <kind> [--call <callee>] [--nth N] [--with <fn>]`: pin an inject.
-//! - `internals sync [--repo <path>]`: sync declarations for native or wasm mods.
-//! - `internals add <path>… [--kind <kind>]`: declare internals from the prebuilt catalog.
-//! - `build`: the `.hmod` in `target/horizon-mod/`, with the mod's `assets/`
-//!   and `data/`; with `--wasm`, a Rust mod built to `mod.wasm` first (`wasm.rs`).
-//! - `wasm-std <out.wasm>`: the standard library member the game ships for wasm mods.
-//! - `run [--game <horizon-client>] [-- <game args>]`: build, then play with
-//!   the mod.
-//! - `check [--uses]` in a mod folder: `cargo check` for the host and wasm32, the package
-//!   rules, and what the mod uses of its pinned build (`sdk_cmds.rs`).
-//! - `check <file> [--json]`: what the registry checks of a submission
-//!   (`.hmod`, `.hpack`, resource pack `.zip`, `.hshader`).
-//! - `hooks <text> [--all]`: search the pinned build's hooks (or every item) offline.
-//! - `sdk diff <build> <build>`: what changed in the surface between two builds.
-//! - `fits [<file.hmod>] [--build <name>]…`: whether the mod fits each build; exit 0 when all
-//!   do, 1 when one does not, 2 when it cannot be told.
-//! - `registry build|review|check|list`: the registry repository's CI.
-//! - `use-jar <path>`: list an exact original Java jar as a passive asset/data source.
+// `cargo shadowx-mod` (binary `cargo-shadowx-mod`): make portable ShadowX content mods (`docs/modpacks.md`): blocks,
+// items, data and assets, no code. Code mods are native (docs/modding/src/how-to/native-mods.md).
+//
+// - `new <path> [--name "Name"]`: a content mod from the template; with
+//   `--template native|wasm [--horizon <build>]`, a code mod pinned to the current Nightly's
+//   SDK unless `--horizon` names another build (`nightly-<date>` or a sha), with that SDK fetched
+//   into `.horizon/sdk/` (`sdk_fetch.rs`).
+// - `update [--horizon <build>]`: repin this native mod and diff/refresh declared internals.
+// - `inject update [--accept <id>]…`: refresh declarations without repinning.
+// - `inject sync --repo <game checkout>`: validate API injection pins against a game catalog.
+// - `inject add <at> --kind <kind> [--call <callee>] [--nth N] [--with <fn>]`: pin an inject.
+// - `internals sync [--repo <path>]`: sync declarations for native or wasm mods.
+// - `internals add <path>… [--kind <kind>]`: declare internals from the prebuilt catalog.
+// - `build`: the `.hmod` in `target/horizon-mod/`, with the mod's `assets/`
+//   and `data/`; with `--wasm`, a Rust mod built to `mod.wasm` first (`wasm.rs`).
+// - `wasm-std <out.wasm>`: the standard library member the game ships for wasm mods.
+// - `run [--game <horizon-client>] [-- <game args>]`: build, then play with
+//   the mod.
+// - `check [--uses]` in a mod folder: `cargo check` for the host and wasm32, the package
+//   rules, and what the mod uses of its pinned build (`sdk_cmds.rs`).
+// - `check <file> [--json]`: what the registry checks of a submission
+//   (`.hmod`, `.hpack`, resource pack `.zip`, `.hshader`).
+// - `hooks <text> [--all]`: search the pinned build's hooks (or every item) offline.
+// - `sdk diff <build> <build>`: what changed in the surface between two builds.
+// - `fits [<file.hmod>] [--build <name>]…`: whether the mod fits each build; exit 0 when all
+//   do, 1 when one does not, 2 when it cannot be told.
+// - `registry build|review|check|list`: the registry repository's CI.
+// - `use-jar <path>`: list an exact original Java jar as a passive asset/data source.
 use horizon_mod_package::{Content, Manifest, Package, manifest::MANIFEST};
 mod bounded;
 mod check;
