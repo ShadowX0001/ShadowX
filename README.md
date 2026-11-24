@@ -14,9 +14,9 @@ ShadowX is an independent Minecraft client and launcher project based on the Sta
 ## Build and release
 
 - The `ShadowX bootstrap and build` workflow checks the workspace and produces CI artifacts.
-- The `ShadowX release builds` workflow builds desktop packages and an Android ARM64 APK. Push a `v*` tag to publish a GitHub Release after all required jobs pass.
+- The `ShadowX release builds` workflow builds desktop packages and Android APKs for ARM64, ARM32, x86 and x86_64; each ABI is published as a separate asset. Push a `v*` tag to publish a GitHub Release after all required jobs pass.
 - CI APKs use the build script's local debug signing key unless a release keystore is explicitly configured. They are suitable for testing, not a Play Store production signing setup.
-- A successful compile is not a substitute for device smoke tests, multiplayer tests, graphics-driver checks or installer testing.
+- A successful compile is not a substitute for device smoke tests, multiplayer tests, graphics-driver checks or installer testing. Android APKs built by CI use a development signing key and are not suitable as production Play Store releases.
 
 ## Mod SDK quick start
 
