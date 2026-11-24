@@ -28,7 +28,7 @@ mkdir -p "$appdir/usr/bin" "$appdir/usr/lib" \
 
 # The program.
 cp "$binary" "$appdir/usr/bin/shadowx-launcher"
-chmod 755 "$appdir/usr/bin/horizon-launcher"
+chmod 755 "$appdir/usr/bin/shadowx-launcher"
 
 # Both places: AppRun's, and the one desktop environments read once the image is unpacked.
 cp "$here/horizon-launcher.desktop" "$appdir/shadowx-launcher.desktop"
@@ -71,7 +71,7 @@ system_library() {
 }
 
 # Everything else the launcher links, then everything those need, until nothing new is added.
-todo=("$appdir/usr/bin/horizon-launcher")
+todo=("$appdir/usr/bin/shadowx-launcher")
 seen=" "
 while [[ ${#todo[@]} -gt 0 ]]; do
   elf=${todo[0]}
@@ -90,7 +90,7 @@ done
 # Each packaged file looks for the others beside the launcher: the binary in ../lib, a library in
 # its own folder. A run path is the file's own, so nothing the launcher starts inherits it.
 command -v patchelf > /dev/null || { echo "error: patchelf is needed (apt install patchelf)" >&2; exit 1; }
-patchelf --set-rpath '$ORIGIN/../lib' "$appdir/usr/bin/horizon-launcher"
+patchelf --set-rpath '$ORIGIN/../lib' "$appdir/usr/bin/shadowx-launcher"
 for lib in "$appdir"/usr/lib/*.so*; do
   if [[ -e "$lib" ]]; then patchelf --set-rpath '$ORIGIN' "$lib"; fi
 done
