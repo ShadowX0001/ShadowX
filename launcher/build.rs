@@ -4,9 +4,9 @@ fn main() {
     println!("cargo:rerun-if-env-changed=HORIZON_LAUNCHER_REPOSITORY");
     println!("cargo:rustc-check-cfg=cfg(horizon_fork_launcher)");
     let repository =
-        std::env::var("HORIZON_LAUNCHER_REPOSITORY").unwrap_or_else(|_| "arismoko/horizon".into());
+        std::env::var("HORIZON_LAUNCHER_REPOSITORY").unwrap_or_else(|_| "ShadowX0001/ShadowX".into());
     match repository.as_str() {
-        "arismoko/horizon" => println!("cargo:rustc-cfg=horizon_fork_launcher"),
+        "ShadowX0001/ShadowX" => {},
         "horizon-rust/horizon" => {}
         _ => panic!("unsupported launcher repository: {repository}"),
     }
