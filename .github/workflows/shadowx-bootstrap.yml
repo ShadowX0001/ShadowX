@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - ".github/workflows/shadowx-bootstrap.yml"
+      - ".github/workflows/release.yml"
+      - "README.md"
       - "Cargo.toml"
       - "Cargo.lock"
       - "launcher/**"
