@@ -135,6 +135,8 @@ jobs:
 
       - name: Compile Mod SDK tests
         run: cargo test -p cargo-horizon-mod --no-run
+      - name: Smoke-test ShadowX Mod SDK command
+        run: cargo run -p cargo-horizon-mod --bin cargo-shadowx-mod -- shadowx-mod --help
  
       - name: Check desktop launcher workspace
         run: |
