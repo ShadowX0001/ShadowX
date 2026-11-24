@@ -122,7 +122,7 @@ pub fn launcher_entry(exe: &Path) -> String {
     let entry = format!(
         "[Desktop Entry]\n\
          Type=Application\n\
-         Name=Horizon\n\
+         Name=ShadowX\n\
          GenericName=Game launcher\n\
          Comment=Install, prepare and play ShadowX, Minecraft: Java Edition {minecraft} rewritten in Rust\n\
          Exec={}\n\
@@ -130,7 +130,7 @@ pub fn launcher_entry(exe: &Path) -> String {
          Icon=horizon\n\
          Terminal=false\n\
          Categories=Game;\n\
-         StartupWMClass=horizon-launcher\n",
+         StartupWMClass=shadowx-launcher\n",
         quote(exe),
         exe.display(),
         minecraft = horizon_platform::version::VANILLA_VERSION,
