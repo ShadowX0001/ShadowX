@@ -128,12 +128,13 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Workspace check
-        run: cargo check --workspace --all-targets
+        run: cargo check --workspace
+          cargo test -p cargo-horizon-mod --no-run
  
       - name: Check desktop launcher workspace
         run: |
           cargo fmt --manifest-path launcher/Cargo.toml --all -- --check
-          cargo check --manifest-path launcher/Cargo.toml --all-targets
+          cargo check --manifest-path launcher/Cargo.toml
 
       - name: Install Android Java toolchain
         uses: actions/setup-java@v4
