@@ -3050,7 +3050,7 @@ mod external_layout_import_tests {
     #[test]
     fn imports_a_supported_layout_and_clamps_positions() {
         let imported = import_layout_json(
-            r#"{\"stick\":{\"x\":4.0,\"y\":-1.0},\"buttons\":{\"jump\":{\"x\":0.4}}}"#,
+            r#"{"stick":{"x":4.0,"y":-1.0},"buttons":{"jump":{"x":0.4}}}"#,
         )
         .unwrap();
         assert_eq!(imported.stick.x, 1.0);
@@ -3063,21 +3063,21 @@ mod external_layout_import_tests {
 
     #[test]
     fn rejects_unrelated_and_corrupt_json() {
-        assert!(import_layout_json(r#"{\"username\":\"player\"}"#).is_err());
+        assert!(import_layout_json(r#"{"username":"player"}"#).is_err());
         assert!(import_layout_json("not json").is_err());
         assert!(import_layout_json("[]").is_err());
     }
 
     #[test]
     fn rejects_invalid_types_and_enum_values_instead_of_silently_resetting() {
-        assert!(import_layout_json(r#"{\"buttons\":[]}"#).is_err());
-        assert!(import_layout_json(r#"{\"stick\":false}"#).is_err());
-        assert!(import_layout_json(r#"{\"movement\":true}"#).is_err());
-        assert!(import_layout_json(r#"{\"movement\":\"teleport\"}"#).is_err());
-        assert!(import_layout_json(r#"{\"interact\":\"unknown\"}"#).is_err());
-        assert!(import_layout_json(r#"{\"stick\":{\"x\":\"left\"}}"#).is_err());
-        assert!(import_layout_json(r#"{\"buttons\":{\"jump\":{\"show\":\"hidden\"}}}"#).is_err());
-        assert!(import_layout_json(r#"{\"custom\":[{}]}"#).is_err());
+        assert!(import_layout_json(r#"{"buttons":[]}"#).is_err());
+        assert!(import_layout_json(r#"{"stick":false}"#).is_err());
+        assert!(import_layout_json(r#"{"movement":true}"#).is_err());
+        assert!(import_layout_json(r#"{"movement":"teleport"}"#).is_err());
+        assert!(import_layout_json(r#"{"interact":"unknown"}"#).is_err());
+        assert!(import_layout_json(r#"{"stick":{"x":"left"}}"#).is_err());
+        assert!(import_layout_json(r#"{"buttons":{"jump":{"show":"hidden"}}}"#).is_err());
+        assert!(import_layout_json(r#"{"custom":[{}]}"#).is_err());
     }
 
     #[test]
