@@ -80,10 +80,22 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  android-arm64:
-    name: Android ARM64 APK
+  android:
+    name: Android APK (${{ matrix.abi }})
     runs-on: ubuntu-latest
     timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - abi: arm64-v8a
+            rust_target: aarch64-linux-android
+          - abi: armeabi-v7a
+            rust_target: armv7-linux-androideabi
+          - abi: x86
+            rust_target: i686-linux-android
+          - abi: x86_64
+            rust_target: x86_64-linux-android
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -106,7 +118,7 @@ jobs:
       - name: Install Rust and Android target
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android
+          targets: ${{ matrix.rust_target }}
           components: rust-src
 
       - name: Cache Cargo
@@ -120,24 +132,25 @@ jobs:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/28.2.13676358
           RUSTC_BOOTSTRAP: "1"
-        run: python3 packaging/android/build_apk.py --profile release --abi arm64-v8a
+        run: python3 packaging/android/build_apk.py --profile release --abi ${{ matrix.abi }}
 
       - name: Stage Android APK
+        shell: bash
         run: |
           mkdir -p release-assets
-          cp target/android/shadowx-0.1.0-arm64-v8a.apk release-assets/ShadowX-Android-arm64-v8a.apk
+          cp "target/android/shadowx-0.1.0-${{ matrix.abi }}.apk" "release-assets/ShadowX-Android-${{ matrix.abi }}.apk"
 
       - name: Upload Android release asset
         uses: actions/upload-artifact@v4
         with:
-          name: shadowx-android-arm64
+          name: shadowx-android-${{ matrix.abi }}
           path: release-assets/*
           if-no-files-found: error
           retention-days: 14
 
   publish:
     name: Publish GitHub Release
-    needs: [desktop, android-arm64]
+    needs: [desktop, android]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
