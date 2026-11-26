@@ -1,0 +1,55 @@
+name: ShadowX CI
+
+on:
+  push:
+    branches:
+      - main
+      - shadowx-dev
+  pull_request:
+    branches:
+      - main
+      - shadowx-dev
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shadowx-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  launcher-check:
+    name: Launcher format and compile check (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake clang pkg-config libssl-dev \
+            libasound2-dev libudev-dev libxkbcommon-dev libwayland-dev \
+            libx11-dev libx11-xcb-dev libxcb-render0-dev libxcb-shape0-dev \
+            libxcb-xfixes0-dev libxrandr-dev libxi-dev libxcursor-dev \
+            libxinerama-dev libvulkan-dev libgl1-mesa-dev \
+            libfontconfig1-dev libfreetype6-dev
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            launcher -> target
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path launcher/Cargo.toml --all -- --check
+
+      - name: Compile launcher
+        run: cargo check --manifest-path launcher/Cargo.toml --locked
