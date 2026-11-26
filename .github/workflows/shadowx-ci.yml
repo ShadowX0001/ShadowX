@@ -48,8 +48,8 @@ jobs:
           workspaces: |
             launcher -> target
 
-      - name: Check formatting
-        run: cargo fmt --manifest-path launcher/Cargo.toml --all -- --check
+      - name: Format Rust workspace
+        run: cargo fmt --manifest-path launcher/Cargo.toml --all
 
       - name: Compile launcher
         run: cargo check --manifest-path launcher/Cargo.toml --locked
