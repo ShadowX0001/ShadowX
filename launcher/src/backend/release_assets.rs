@@ -1,4 +1,4 @@
-/// The release assets of each system Horizon ships for: (OS, architecture, the game, the launcher).
+/// The release assets of each system ShadowX ships for: (OS, architecture, the game, the launcher).
 /// game-build.yml builds the game's, nightly-build.yml signs and publishes them, and launcher.yml
 /// builds the launcher's (`platform_assets_are_published`).
 pub const PLATFORMS: [(&str, &str, &str, &str); 5] = [

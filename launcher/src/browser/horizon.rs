@@ -1,5 +1,5 @@
-//! Horizon's own registry (docs/modding/src/reference/registry-index.md): mods, modpacks and resource packs made for
-//! Horizon, reviewed as pull requests in horizon-rust/horizon-mods. One file lists them all,
+//! ShadowX's own registry (docs/modding/src/reference/registry-index.md): mods, modpacks and resource packs made for
+//! ShadowX, reviewed as pull requests in horizon-rust/horizon-mods. One file lists them all,
 //! `index.json`; every download is checked against it before it reaches the game folder
 //! (`horizon_mod_package::index::check_file`: size, SHA-256, the author's signature, the file's own
 //! manifest), and files the index says were taken down are refused and turned off.
@@ -289,13 +289,13 @@ fn tags_of(index: &Index, kind: Kind) -> Vec<String> {
 /// Where the registry's mod policy is: who owns and answers for a project, takedowns.
 pub const POLICY: &str = "https://playhorizon.dev/mods/policy";
 
-/// Whether the Horizon project made `p` (the mod policy's "Official": author Horizon, source in
+/// Whether the ShadowX project made `p` (the mod policy's "Official": author ShadowX, source in
 /// the horizon-rust organisation).
 pub fn official(p: &index::Project) -> bool {
-    p.authors == ["Horizon"] && p.source.starts_with("https://github.com/horizon-rust/")
+    p.authors == ["ShadowX"] && p.source.starts_with("https://github.com/horizon-rust/")
 }
 
-/// Whether the registry's project `id` is Horizon's own ([`official`]), by the index already read
+/// Whether the registry's project `id` is ShadowX's own ([`official`]), by the index already read
 /// (never the network); false when none was read.
 pub fn is_official(id: &str) -> bool {
     official_in(known_index().as_deref(), id)
@@ -307,7 +307,7 @@ fn official_in(index: Option<&Index>, id: &str) -> bool {
 
 /// What the player reads about a registry project before installing it: who made it, whether its
 /// files are signed, and for a mod what it may do, in the game's words (Options > Mods). A native
-/// mod says it runs with the player's rights, and how it fits the Horizon `instance` plays.
+/// mod says it runs with the player's rights, and how it fits the ShadowX `instance` plays.
 pub fn trust_and_capabilities(
     id: &str,
     instance: Option<&crate::instances::Instance>,
@@ -319,10 +319,10 @@ pub fn trust_and_capabilities(
         return Vec::new();
     };
     let mut lines = vec![if official(p) {
-        "Made by Horizon".to_owned()
+        "Made by ShadowX".to_owned()
     } else {
         format!(
-            "Made by {}. Not made or endorsed by the Horizon project ({POLICY})",
+            "Made by {}. Not made or endorsed by the ShadowX project ({POLICY})",
             p.authors.join(", ")
         )
     }];
@@ -341,7 +341,7 @@ pub fn trust_and_capabilities(
                     .and_then(|i| crate::native_fit::line(i, pin))
                     .unwrap_or_else(|| {
                         format!(
-                            "Built by the launcher on Horizon {}",
+                            "Built by the launcher on ShadowX {}",
                             &pin[..pin.len().min(7)]
                         )
                     }),
@@ -365,7 +365,7 @@ fn project_of(p: &index::Project) -> Option<Project> {
     let mut game_versions: Vec<String> = p.versions.iter().map(|v| v.game.clone()).collect();
     game_versions.dedup();
     Some(Project {
-        source: SourceId::Horizon,
+        source: SourceId::ShadowX,
         id: p.id.clone(),
         slug: p.id.clone(),
         title: p.name.clone(),
@@ -525,7 +525,7 @@ pub struct Registry;
 
 impl Source for Registry {
     fn id(&self) -> SourceId {
-        SourceId::Horizon
+        SourceId::ShadowX
     }
 
     fn search(&self, query: &Query) -> Result<Vec<Project>, String> {
@@ -538,10 +538,10 @@ impl Source for Registry {
         let index = index()?;
         let p = index
             .project(id)
-            .ok_or_else(|| format!("{id} isn't in Horizon's registry."))?;
+            .ok_or_else(|| format!("{id} isn't in ShadowX's registry."))?;
         project_of(p).ok_or_else(|| {
             format!(
-                "{} is a {} in Horizon's registry: this launcher can't install those yet.",
+                "{} is a {} in ShadowX's registry: this launcher can't install those yet.",
                 p.name,
                 p.kind.name()
             )
@@ -552,14 +552,14 @@ impl Source for Registry {
         let index = index()?;
         let p = index
             .project(&project.id)
-            .ok_or_else(|| format!("{} isn't in Horizon's registry.", project.title))?;
+            .ok_or_else(|| format!("{} isn't in ShadowX's registry.", project.title))?;
         Ok(p.versions
             .iter()
             .map(|v| version_of(&index, p, v))
             .collect())
     }
 
-    /// Only categories and tags: every registry file is for Horizon on the version it plays. The
+    /// Only categories and tags: every registry file is for ShadowX on the version it plays. The
     /// tags come from the index the search already read (never the network).
     fn tags(&self, kind: Kind) -> Result<super::details::Tags, String> {
         Ok(super::details::Tags {
@@ -580,7 +580,7 @@ impl Source for Registry {
         let index = index()?;
         let p = index
             .project(&project.id)
-            .ok_or_else(|| format!("{} isn't in Horizon's registry.", project.title))?;
+            .ok_or_else(|| format!("{} isn't in ShadowX's registry.", project.title))?;
         let newest = p.versions.first();
         let mut body = p.description.clone();
         if let Some(v) = newest.filter(|v| !v.capabilities.is_empty()) {
@@ -731,7 +731,7 @@ fn install_from(
 ) -> Result<Vec<installed::Entry>, String> {
     let p = index
         .project(&project.id)
-        .ok_or_else(|| format!("{} isn't in Horizon's registry.", project.title))?;
+        .ok_or_else(|| format!("{} isn't in ShadowX's registry.", project.title))?;
     let v = newest(index, p)?;
     install_version(index, local, p, v, home, progress).map(|e| vec![e])
 }
@@ -757,7 +757,7 @@ fn fetch_datapack_from(
     let p = index
         .project(&project.id)
         .filter(|p| p.kind == index::Kind::DataPack)
-        .ok_or_else(|| format!("{} isn't a data pack in Horizon's registry.", project.title))?;
+        .ok_or_else(|| format!("{} isn't a data pack in ShadowX's registry.", project.title))?;
     let v = newest(index, p)?;
     let file = &version_of(index, p, v).files[0];
     let path = fetch(file, folder, local, progress)?;
@@ -825,7 +825,7 @@ fn install_version_guarded(
         false => relative(project.kind, &p.id, &v.file.name)?,
     };
     let mut list = installed::Installed::load(home);
-    let ours = |e: &installed::Entry| e.source == SourceId::Horizon && e.project == p.id;
+    let ours = |e: &installed::Entry| e.source == SourceId::ShadowX && e.project == p.id;
     let old = list.entries.iter().find(|e| ours(e)).cloned();
     if let Some(old) = &old {
         let mut different = old.kind != project.kind;
@@ -878,7 +878,7 @@ fn install_version_guarded(
     let checked = index::check_file(index, p, v, &path).and_then(|trust| {
         // Only Rust and TOML sources, for the mod the index names: nothing in it runs here.
         match native {
-            // Either format: Horizon's flat package or the registry's `.hnmod` bundle (Starling).
+            // Either format: ShadowX's flat package or the registry's `.hnmod` bundle (Starling).
             true => index::native::Any::read(&path).and_then(|b| match b.id() == p.id {
                 true => Ok(trust),
                 false => Err(format!("it is {}, not {}", b.id(), p.id)),
@@ -903,7 +903,7 @@ fn install_version_guarded(
         let _ = fs::remove_file(old);
     }
     let entry = installed::Entry {
-        source: SourceId::Horizon,
+        source: SourceId::ShadowX,
         project: p.id.clone(),
         slug: p.id.clone(),
         title: p.name.clone(),
@@ -925,7 +925,7 @@ fn install_version_guarded(
 }
 
 /// The mod id of an installed mod (`horizon-mods/<id>`, `horizon-mods/<id>.hmod` or
-/// `horizon-native-mods/<id>.hnmod`, or `.hmod` there as Horizon installs them).
+/// `horizon-native-mods/<id>.hnmod`, or `.hmod` there as ShadowX installs them).
 pub fn mod_id(entry: &installed::Entry) -> Option<&str> {
     if let Some(rest) = entry.file.strip_prefix(crate::native_mods::INSTALLED) {
         let file = rest.strip_prefix('/')?;
@@ -950,7 +950,7 @@ pub fn turn_off_revoked(index: &Index, home: &Path) -> Vec<String> {
     let mut out = Vec::new();
     for e in installed::Installed::load(home).entries {
         let hash = e.checksum.strip_prefix("SHA-256:").unwrap_or_default();
-        let Some(r) = (e.source == SourceId::Horizon)
+        let Some(r) = (e.source == SourceId::ShadowX)
             .then(|| index.revoked(&e.project, hash))
             .flatten()
         else {
@@ -980,7 +980,7 @@ pub fn before_play(home: &Path) {
     let from_registry = installed::Installed::load(home)
         .entries
         .iter()
-        .any(|e| e.source == SourceId::Horizon);
+        .any(|e| e.source == SourceId::ShadowX);
     if !from_registry {
         return;
     }

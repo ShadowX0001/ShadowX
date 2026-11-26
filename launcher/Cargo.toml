@@ -73,7 +73,7 @@ horizon-release-sign = { path = "../crates/horizon-release-sign" }
 # Opt-in data collection: the consent, the outbox and its upload (docs/telemetry.md).
 horizon-telemetry = { path = "../crates/horizon-telemetry" }
 # Deleting a world moves it to the system's trash
-trash = "5"
+trash = { version = "4", features = ["default"] }
 # Backup names carry the local time, as vanilla's do
 base64 = "0.22"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }

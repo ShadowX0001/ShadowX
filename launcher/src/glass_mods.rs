@@ -33,10 +33,10 @@ impl Launcher {
         if registry && m.kind == PackKind::Mod && m.searched && m.text.text().is_empty() {
             // Results come in pages: only a last page gives the real count.
             if m.more {
-                return tr("Search Horizon mods").into();
+                return tr("Search ShadowX mods").into();
             }
             trf(
-                "Search {count} Horizon mods",
+                "Search {count} ShadowX mods",
                 &[("count", &m.results.len().to_string())],
             )
             .into()
@@ -53,7 +53,7 @@ impl Launcher {
         let t = self.theme;
         let instance = self
             .selected_instance()
-            .map_or_else(|| "Horizon".to_owned(), |i| i.name.clone());
+            .map_or_else(|| "ShadowX".to_owned(), |i| i.name.clone());
         let head = ui::page_head(
             tr("Mods"),
             trf(
@@ -362,11 +362,11 @@ impl Launcher {
                     &[("query", m.text.text().trim())],
                 )
             } else if m.source == SourceId::Horizon {
-                tr("Nothing in Horizon's registry matches yet.").to_string()
+                tr("Nothing in ShadowX's registry matches yet.").to_string()
             } else if m.everything {
                 tr("Nothing found.").to_string()
             } else {
-                tr("Nothing found that runs in Horizon. Show everything lists the rest.")
+                tr("Nothing found that runs in ShadowX. Show everything lists the rest.")
                     .to_string()
             };
             return ui::text(14., FontWeight::NORMAL, 0.6)

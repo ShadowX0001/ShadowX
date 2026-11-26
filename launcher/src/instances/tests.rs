@@ -556,10 +556,10 @@ fn switching_what_an_instance_plays_keeps_its_worlds_mods_and_settings() {
         }
     );
 
-    // A turn as Horizon, then Vanilla: the Java settings come back, nothing on disk moved.
-    switch::switch_in(&home, &data, &made.id, Plays::Horizon).unwrap();
-    let horizon = find_in(&list_in(&home, &data), &made.id).unwrap();
-    assert_eq!(horizon.java, None);
+    // A turn as ShadowX, then Vanilla: the Java settings come back, nothing on disk moved.
+    switch::switch_in(&home, &data, &made.id, Plays::ShadowX).unwrap();
+    let shadowx = find_in(&list_in(&home, &data), &made.id).unwrap();
+    assert_eq!(shadowx.java, None);
     let vanilla = Plays::Java {
         minecraft: "1.21.4".into(),
         loader: None,
@@ -584,7 +584,7 @@ fn switching_what_an_instance_plays_keeps_its_worlds_mods_and_settings() {
 
     // The game's home can't switch, and is left as it was.
     let home_files = files(&home.join("saves"));
-    let refused = switch::switch_in(&home, &data, DEFAULT, Plays::Horizon).unwrap_err();
+    let refused = switch::switch_in(&home, &data, DEFAULT, Plays::ShadowX).unwrap_err();
     assert!(refused.contains("plays what it was made with"), "{refused}");
     assert_eq!(files(&home.join("saves")), home_files);
     fs::remove_dir_all(&root).unwrap();

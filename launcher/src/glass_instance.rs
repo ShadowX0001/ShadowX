@@ -284,11 +284,11 @@ impl Launcher {
             .cloned()
     }
 
-    /// The mark an instance shows when nothing is chosen: Horizon's, the grass block, its
+    /// The mark an instance shows when nothing is chosen: ShadowX's, the grass block, its
     /// loader's logo.
     fn auto_mark(&mut self, kind: NewKind, loader: Loader, size: f32) -> AnyElement {
         let mark = match kind {
-            NewKind::Horizon => return self.horizon_mark(size),
+            NewKind::ShadowX => return self.shadowx_mark(size),
             NewKind::Vanilla => self.grass_mark(size),
             NewKind::Modded => self.loader_logo(loader.id(), size),
         };
@@ -383,9 +383,9 @@ impl Launcher {
             )],
         );
         let mut summary = match kind {
-            NewKind::Horizon => match self.draft_horizon() {
-                Some(tag) => format!("Horizon · {}", version_label(&tag)),
-                None => "Horizon".into(),
+            NewKind::ShadowX => match self.draft_horizon() {
+                Some(tag) => format!("ShadowX · {}", version_label(&tag)),
+                None => "ShadowX".into(),
             },
             NewKind::Vanilla => format!("{} · {minecraft}", tr("Vanilla")),
             NewKind::Modded => format!("{} · {minecraft}", loader.name()),
@@ -396,7 +396,7 @@ impl Launcher {
         }
         let icon = self.draft_icon(editing, kind, &name, 88.);
         let note = match kind {
-            NewKind::Horizon => {
+            NewKind::ShadowX => {
                 tr("Its own worlds and packs. Your options and player name come along.")
             }
             _ => tr("Play downloads the game from Mojang the first time, with the Java it needs."),
@@ -404,7 +404,7 @@ impl Launcher {
         // One made in the launcher can switch what it plays; the game's home and modpacks
         // play what they were made with.
         let switches = editing.is_none_or(|i| i.kind == instances::Kind::Own);
-        let kinds = [NewKind::Horizon, NewKind::Vanilla, NewKind::Modded];
+        let kinds = [NewKind::ShadowX, NewKind::Vanilla, NewKind::Modded];
         let names: Vec<&str> = loaders().iter().map(|l| l.name()).collect();
         let modded = match names.split_last() {
             Some((last, [])) => last.to_string(),
@@ -417,10 +417,10 @@ impl Launcher {
         let mut cards = Vec::new();
         for k in kinds {
             let (id, title, note) = match k {
-                NewKind::Horizon => (
-                    "horizon",
-                    tr("Horizon"),
-                    tr("Minecraft rebuilt in Rust, with Horizon mods").to_string(),
+                NewKind::ShadowX => (
+                    "shadowx",
+                    tr("ShadowX"),
+                    tr("Minecraft rebuilt in Rust, with ShadowX mods").to_string(),
                 ),
                 NewKind::Vanilla => (
                     "vanilla",

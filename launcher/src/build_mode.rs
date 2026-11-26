@@ -669,7 +669,7 @@ impl Launcher {
                     "flash",
                     pal.accent,
                     tr("Needs no build by itself").into(),
-                    tr("This mod uses the game as it ships, so Horizon can start without building when every enabled mod is like this.").to_string(),
+                    tr("This mod uses the game as it ships, so ShadowX can start without building when every enabled mod is like this.").to_string(),
                 ),
                 // Made for another build: it fits this one, and the build compiles it as usual.
                 Route::Fits { line } => ("tick-02", pal.success, tr("Fits this game").into(), line.clone()),

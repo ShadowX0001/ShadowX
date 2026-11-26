@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=ShadowX Client
+Comment=ShadowX Minecraft client
+Exec=shadowx-client
+Icon=shadowx
+Terminal=false
+Categories=Game;
+StartupWMClass=shadowx
+NoDisplay=true

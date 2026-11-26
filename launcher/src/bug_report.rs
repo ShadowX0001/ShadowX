@@ -33,7 +33,7 @@ pub fn write(text: &str, with_log: bool) -> Result<PathBuf, String> {
     let scrubber = scrubber();
     let machine = Machine::detect_in(Some(&home));
     let mut report = format!(
-        "{}\n\nHorizon launcher {}\n{} {} on {}, {} ({} cores, {} threads, {} GB)\n",
+        "{}\n\nShadowX launcher {}\n{} {} on {}, {} ({} cores, {} threads, {} GB)\n",
         scrubber.scrub(text.trim()),
         backend::VERSION,
         machine.os,
