@@ -19,7 +19,7 @@ const ICONS: [(&str, &[u8]); 9] = [
         if cfg!(horizon_fork_launcher) {
             include_bytes!("../../packaging/icons/fork/16.png")
         } else {
-            include_bytes!("../../packaging/icons/hicolor/16x16/apps/shadowx.png")
+            include_bytes!("../../packaging/icons/hicolor/16x16/apps/horizon.png")
         },
     ),
     (
@@ -27,7 +27,7 @@ const ICONS: [(&str, &[u8]); 9] = [
         if cfg!(horizon_fork_launcher) {
             include_bytes!("../../packaging/icons/fork/24.png")
         } else {
-            include_bytes!("../../packaging/icons/hicolor/24x24/apps/shadowx.png")
+            include_bytes!("../../packaging/icons/hicolor/24x24/apps/horizon.png")
         },
     ),
     (
@@ -35,7 +35,7 @@ const ICONS: [(&str, &[u8]); 9] = [
         if cfg!(horizon_fork_launcher) {
             include_bytes!("../../packaging/icons/fork/32.png")
         } else {
-            include_bytes!("../../packaging/icons/hicolor/32x32/apps/shadowx.png")
+            include_bytes!("../../packaging/icons/hicolor/32x32/apps/horizon.png")
         },
     ),
     (
@@ -43,7 +43,7 @@ const ICONS: [(&str, &[u8]); 9] = [
         if cfg!(horizon_fork_launcher) {
             include_bytes!("../../packaging/icons/fork/48.png")
         } else {
-            include_bytes!("../../packaging/icons/hicolor/48x48/apps/shadowx.png")
+            include_bytes!("../../packaging/icons/hicolor/48x48/apps/horizon.png")
         },
     ),
     (
@@ -51,7 +51,7 @@ const ICONS: [(&str, &[u8]); 9] = [
         if cfg!(horizon_fork_launcher) {
             include_bytes!("../../packaging/icons/fork/64.png")
         } else {
-            include_bytes!("../../packaging/icons/hicolor/64x64/apps/shadowx.png")
+            include_bytes!("../../packaging/icons/hicolor/64x64/apps/horizon.png")
         },
     ),
     (
@@ -59,7 +59,7 @@ const ICONS: [(&str, &[u8]); 9] = [
         if cfg!(horizon_fork_launcher) {
             include_bytes!("../../packaging/icons/fork/128.png")
         } else {
-            include_bytes!("../../packaging/icons/hicolor/128x128/apps/shadowx.png")
+            include_bytes!("../../packaging/icons/hicolor/128x128/apps/horizon.png")
         },
     ),
     (
@@ -67,7 +67,7 @@ const ICONS: [(&str, &[u8]); 9] = [
         if cfg!(horizon_fork_launcher) {
             include_bytes!("../../packaging/icons/fork/256.png")
         } else {
-            include_bytes!("../../packaging/icons/hicolor/256x256/apps/shadowx.png")
+            include_bytes!("../../packaging/icons/hicolor/256x256/apps/horizon.png")
         },
     ),
     (
@@ -75,7 +75,7 @@ const ICONS: [(&str, &[u8]); 9] = [
         if cfg!(horizon_fork_launcher) {
             include_bytes!("../../packaging/icons/fork/512.png")
         } else {
-            include_bytes!("../../packaging/icons/hicolor/512x512/apps/shadowx.png")
+            include_bytes!("../../packaging/icons/hicolor/512x512/apps/horizon.png")
         },
     ),
     (
@@ -83,7 +83,7 @@ const ICONS: [(&str, &[u8]); 9] = [
         if cfg!(horizon_fork_launcher) {
             include_bytes!("../../packaging/icons/fork/launcher.svg")
         } else {
-            include_bytes!("../../packaging/icons/hicolor/scalable/apps/shadowx.svg")
+            include_bytes!("../../packaging/icons/hicolor/scalable/apps/horizon.svg")
         },
     ),
 ];
