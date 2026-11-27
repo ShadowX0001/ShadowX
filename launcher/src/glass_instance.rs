@@ -588,7 +588,7 @@ impl Launcher {
         let (busy, copy, error) = (d.busy, d.copy, d.error.clone());
         let title = match (editing, kind) {
             (Some(i), _) => trf("Edit {name}", &[("name", &i.name)]),
-            (None, NewKind::Horizon) => tr("A new Horizon instance").into(),
+            (None, NewKind::ShadowX) => tr("A new Horizon instance").into(),
             (None, NewKind::Vanilla) => tr("A new vanilla instance").into(),
             (None, NewKind::Modded) => tr("A new modded instance").into(),
         };
@@ -658,7 +658,7 @@ impl Launcher {
         if let Some(i) = editing {
             body = body.children(self.switch_notice(i));
         }
-        if kind == NewKind::Horizon {
+        if kind == NewKind::ShadowX {
             body = body.child(self.horizon_versions(cx));
             if editing.is_none() {
                 body = body.child(self.start_from(copy, cx));
@@ -863,7 +863,7 @@ impl Launcher {
             .map_or_else(|| "Horizon".into(), |i| i.name.clone());
         let icon = match &selected {
             Some(i) => self.glass_instance_icon(i, 36.),
-            None => self.horizon_mark(36.),
+            None => self.shadowx_mark(36.),
         };
         let card = |on: bool, id: &'static str| {
             choice(id, on, &t)
