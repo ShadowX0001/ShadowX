@@ -42,10 +42,10 @@ fn baseline(load: impl Fn() -> Result<serde_json::Value, String>) -> (Vec<Releas
     (releases, updates)
 }
 
-fn shared(load: impl FnOnce() -> Result<serde_json::Value, String>) -> (Vec<Release>, Updates) {
+fn shared(load: impl Fn() -> Result<serde_json::Value, String>) -> (Vec<Release>, Updates) {
     let mut releases = None;
     let updates = releases_and_updates_with(
-        load,
+        || load(),
         installed_fixture,
         || launcher_releases_in(&load().unwrap()),
         |r| releases = Some(r.unwrap()),
@@ -188,7 +188,7 @@ fn each_platform_download_is_bound_to_the_fork_not_the_provider_url() {
             if cfg!(horizon_fork_launcher) {
                 "horizon-fork-launcher-linux-x86_64.tar.gz"
             } else {
-                "horizon-launcher-linux-x86_64.tar.gz"
+                "shadowx-launcher-linux-x86_64.tar.gz"
             },
         ),
         (
@@ -198,7 +198,7 @@ fn each_platform_download_is_bound_to_the_fork_not_the_provider_url() {
             if cfg!(horizon_fork_launcher) {
                 "horizon-fork-launcher-windows-x64.zip"
             } else {
-                "horizon-launcher-windows-x64.zip"
+                "shadowx-launcher-windows-x64.zip"
             },
         ),
         (
@@ -208,7 +208,7 @@ fn each_platform_download_is_bound_to_the_fork_not_the_provider_url() {
             if cfg!(horizon_fork_launcher) {
                 "horizon-fork-launcher-macos-arm64.zip"
             } else {
-                "horizon-launcher-macos-arm64.zip"
+                "shadowx-launcher-macos-arm64.zip"
             },
         ),
     ];
@@ -237,7 +237,8 @@ fn each_platform_download_is_bound_to_the_fork_not_the_provider_url() {
                 parsed[0].asset,
                 Some((
                     format!(
-                        "https://github.com/ShadowX0001/ShadowX/releases/download/{tag}/{expected}"
+                        "https://github.com/{}/releases/download/{tag}/{expected}",
+                        if tag.starts_with("launcher@") { REPO } else { HORIZON_REPO }
                     ),
                     9
                 ))
@@ -290,7 +291,7 @@ fn decoy_asset_names_never_replace_the_exact_platform_asset() {
     assert!(draft.is_empty());
     assert_eq!(
         crate::signed::asset_url("../../x", "../evil.zip"),
-        "https://github.com/{HORIZON_REPO}/releases/download/..%2F..%2Fx/..%2Fevil.zip"
+        format!("https://github.com/{HORIZON_REPO}/releases/download/..%2F..%2Fx/..%2Fevil.zip")
     );
 }
 
