@@ -5234,8 +5234,8 @@ pub fn {f}("
         let workflow = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../.github/workflows/release.yml");
         let workflow = fs::read_to_string(workflow).unwrap();
-        assert!(workflow.contains("binary: shadowx-launcher"));
-        assert!(workflow.contains("binary: shadowx-launcher.exe"));
+        assert!(workflow.contains("output: shadowx-launcher"));
+        assert!(workflow.contains("output: shadowx-launcher.exe"));
     }
 
     #[test]
