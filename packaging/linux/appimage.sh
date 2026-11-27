@@ -34,8 +34,13 @@ chmod 755 "$appdir/usr/bin/shadowx-launcher"
 cp "$here/horizon-launcher.desktop" "$appdir/shadowx-launcher.desktop"
 cp "$here/horizon-launcher.desktop" "$appdir/usr/share/applications/shadowx-launcher.desktop"
 cp -R "$here/../icons/hicolor/." "$appdir/usr/share/icons/hicolor/"
-cp "$here/../icons/hicolor/512x512/apps/horizon.png" "$appdir/horizon.png"
-ln -s horizon.png "$appdir/.DirIcon"
+for size in 16 24 32 48 64 128 256 512; do
+  icon_dir="$appdir/usr/share/icons/hicolor/${size}x${size}/apps"
+  mkdir -p "$icon_dir"
+  cp "$here/../icons/fork/${size}.png" "$icon_dir/shadowx.png"
+done
+cp "$here/../icons/fork/512.png" "$appdir/shadowx.png"
+ln -s shadowx.png "$appdir/.DirIcon"
 
 # Runs the packaged binary. It finds the packaged libraries through its own run path (set below),
 # not LD_LIBRARY_PATH, which every program it starts (the game, a browser, a file manager) would
@@ -98,7 +103,7 @@ done
 # Everything the launcher links is either beside it or the machine's: a library missing on the
 # machine that builds this would make an image that starts nowhere. No LD_LIBRARY_PATH: the run
 # paths alone must find them.
-missing=$(ldd "$appdir/usr/bin/horizon-launcher" | grep "not found" || true)
+missing=$(ldd "$appdir/usr/bin/shadowx-launcher" | grep "not found" || true)
 [[ -z "$missing" ]] || {
   echo "error: the launcher links libraries this machine does not have:" >&2
   echo "$missing" >&2
@@ -123,8 +128,8 @@ ARCH=x86_64 "$tool" --appimage-extract-and-run --no-appstream "$appdir" "$out/$n
 
 # It starts, and is the version it was built as, before any window or GPU is needed.
 got=$("$out/$name" --appimage-extract-and-run --version)
-[[ "$got" == "horizon-launcher $version" ]] || {
-  echo "error: expected 'horizon-launcher $version', got '$got'" >&2
+[[ "$got" == "shadowx-launcher $version" ]] || {
+  echo "error: expected 'shadowx-launcher $version', got '$got'" >&2
   exit 1
 }
 
@@ -133,9 +138,9 @@ got=$("$out/$name" --appimage-extract-and-run --version)
 data=$work/data
 HORIZON_LAUNCHER_HOME=$work/home XDG_DATA_HOME=$data \
   "$out/$name" --appimage-extract-and-run desktop-entry > /dev/null
-grep -Fq "Exec=\"$out/$name\"" "$data/applications/horizon-launcher.desktop" || {
+grep -Fq "Exec=\"$out/$name\"" "$data/applications/shadowx-launcher.desktop" || {
   echo "error: the menu entry does not start $out/$name" >&2
-  cat "$data/applications/horizon-launcher.desktop" >&2
+  cat "$data/applications/shadowx-launcher.desktop" >&2
   exit 1
 }
 
