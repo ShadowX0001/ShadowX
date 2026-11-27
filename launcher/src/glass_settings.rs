@@ -288,7 +288,7 @@ impl Launcher {
                     .map_or(tag.clone(), |r| update_name(r).to_owned()),
                 _ => tag,
             });
-        let tone = if self.updates.horizon.is_some() {
+        let tone = if self.updates.shadowx.is_some() {
             ui::Tone::Accent(ui::look().accent_soft)
         } else if self.update_error.is_some() {
             ui::Tone::Warn
@@ -326,7 +326,7 @@ impl Launcher {
             .when(!wide, |d| d.flex_col())
             .gap(px(8.))
             .child(tile(
-                self.horizon_mark(42.),
+                self.shadowx_mark(42.),
                 "ShadowX".into(),
                 installed.unwrap_or_else(|| tr("Nightly").to_string()),
                 div()
@@ -352,7 +352,7 @@ impl Launcher {
         let n = 0;
         let account = card().child(self.glass_account(cx));
         let updates = card()
-            .child(self.update_tiles(b.horizon, b.horizon_action, b.launcher, b.launcher_action))
+            .child(self.update_tiles(b.shadowx, b.horizon_action, b.launcher, b.launcher_action))
             .child(index_row(
                 0,
                 tr("Install new versions automatically"),
