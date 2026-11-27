@@ -160,7 +160,10 @@ fn files(data: &Path, exe: &Path) -> Vec<(PathBuf, Vec<u8>)> {
             if cfg!(horizon_fork_launcher) {
                 GAME_ENTRY_TEXT
                     .replace("Icon=shadowx", "Icon=shadowx-fork-arismoko")
-                    .replace("StartupWMClass=shadowx", "StartupWMClass=io.github.arismoko.shadowxfork")
+                    .replace(
+                        "StartupWMClass=shadowx",
+                        "StartupWMClass=io.github.arismoko.shadowxfork",
+                    )
                     .into_bytes()
             } else {
                 GAME_ENTRY_TEXT.as_bytes().to_vec()
