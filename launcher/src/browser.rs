@@ -75,7 +75,8 @@ impl Kind {
 pub enum SourceId {
     Modrinth,
     CurseForge,
-    /// ShadowX's own registry of reviewed mods, modpacks and resource packs ([`horizon`]).
+    /// Horizon's registry of reviewed mods, modpacks and resource packs ([`horizon`]).
+    #[serde(alias = "horizon")]
     ShadowX,
 }
 
@@ -84,12 +85,12 @@ impl SourceId {
         match self {
             SourceId::Modrinth => "Modrinth",
             SourceId::CurseForge => "CurseForge",
-            SourceId::ShadowX => "ShadowX",
+            SourceId::ShadowX => "Horizon",
         }
     }
 
     /// The source a list names after the author ("from {source}") for project `id`: Modrinth and
-    /// CurseForge always, ShadowX's registry only for ShadowX's own projects
+    /// CurseForge always, Horizon's registry only for Horizon's own projects
     /// ([`horizon::official`]), so a contributor's project reads "by <author>" alone.
     pub fn shown_for(self, id: &str) -> Option<&'static str> {
         match self {
