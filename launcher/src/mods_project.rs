@@ -316,7 +316,7 @@ impl Launcher {
     /// The orders the current source can sort by, "Best match" first.
     pub(super) fn mods_sorts(&self) -> Vec<(Option<Sort>, &'static str)> {
         let own =
-            self.mods.source == SourceId::Horizon && self.mods.java_for(self.mods.kind).is_none();
+            self.mods.source == SourceId::ShadowX && self.mods.java_for(self.mods.kind).is_none();
         let all: &[Sort] = if own {
             &browser::horizon::SORTS
         } else {
@@ -435,7 +435,7 @@ impl Launcher {
         let f = self.mods.browse.filters.clone();
         let sorts = self.mods_sorts();
         let registry =
-            self.mods.source == SourceId::Horizon && self.mods.java_for(self.mods.kind).is_none();
+            self.mods.source == SourceId::ShadowX && self.mods.java_for(self.mods.kind).is_none();
         let sort = (!t.glass && !registry).then(|| self.mods_sort_dropdown(&sorts, f.sort, cx));
         let shown = self.mods.browse.show_filters;
         let active = f.categories.len()
@@ -694,7 +694,7 @@ impl Launcher {
         if let Some(Ok(d)) = &details {
             // A registry project has no followers: its source repository's stars stand beside its
             // rating instead, as a star and a number (`mods_page::stars`).
-            if p.source != SourceId::Horizon {
+            if p.source != SourceId::ShadowX {
                 meta.push(trf(
                     "{count} followers",
                     &[("count", &thousands(d.followers))],
@@ -802,7 +802,7 @@ impl Launcher {
             .child(head);
         // Registry projects are rated on the site, signed in with GitHub (one rating per account),
         // and starred on their source repository, which the player does there themselves.
-        if p.source == SourceId::Horizon {
+        if p.source == SourceId::ShadowX {
             let url = browser::horizon::rate_url(&p.id);
             let repo = match &details {
                 Some(Ok(d)) => d.github.as_ref().map(|g| g.url.clone()),
