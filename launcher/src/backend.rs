@@ -3120,7 +3120,7 @@ pub fn release_notes(tag: Option<&str>) -> Result<Release, String> {
     match tag {
         Some(tag) => release_selection::by_tag(&releases, tag)
             .cloned()
-            .ok_or_else(|| format!("No ShadowX release is tagged {tag}.")),
+            .ok_or_else(|| format!("No Horizon release is tagged {tag}.")),
         None => releases
             .into_iter()
             .next()
