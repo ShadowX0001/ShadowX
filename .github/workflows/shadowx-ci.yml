@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   launcher-check:
-    name: Launcher format and compile check (Ubuntu)
+    name: Launcher format, all-target check and tests (Ubuntu)
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -48,8 +48,11 @@ jobs:
           workspaces: |
             launcher -> target
 
-      - name: Format Rust workspace
-        run: cargo fmt --manifest-path launcher/Cargo.toml --all
+      - name: Verify Rust formatting
+        run: cargo fmt --manifest-path launcher/Cargo.toml --all -- --check
 
-      - name: Compile launcher
-        run: cargo check --manifest-path launcher/Cargo.toml --locked
+      - name: Check all launcher targets
+        run: cargo check --manifest-path launcher/Cargo.toml --all-targets --locked
+
+      - name: Run launcher tests
+        run: cargo test --manifest-path launcher/Cargo.toml --locked
