@@ -17,7 +17,7 @@ const FORGE: &[u8] = include_bytes!("../assets/logos/forge.png");
 /// Vanilla's mark: our own grass block (`tools/launcher_grass_block.py`), not Mojang's art.
 pub(super) const GRASS: &[u8] = include_bytes!("../assets/logos/grass-block.png");
 /// ShadowX's mark (`docs/media/brand/icon.svg`), as the icon theme holds it.
-const MARK: &[u8] = include_bytes!("../../packaging/icons/hicolor/256x256/apps/shadowx.png");
+const MARK: &[u8] = include_bytes!("../../packaging/icons/hicolor/256x256/apps/horizon.png");
 /// The loaders a logo is drawn for.
 const LOADERS: [&str; 4] = ["fabric", "quilt", "forge", "neoforge"];
 
