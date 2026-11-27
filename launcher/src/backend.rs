@@ -461,9 +461,9 @@ const LAUNCHER_BINARY: &str = if cfg!(windows) {
 };
 
 pub(crate) const CLIENT: &str = if cfg!(windows) {
-    "shadowx-client.exe"
+    "horizon-client.exe"
 } else {
-    "shadowx-client"
+    "horizon-client"
 };
 
 /// The agent `url` is fetched with: the launcher's own user agent, through the player's proxy when
