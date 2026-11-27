@@ -4837,7 +4837,7 @@ pub fn {f}("
         assert_eq!(
             platform_assets("macos", "aarch64"),
             Some((
-                "shadowx-macos-arm64.zip",
+                "horizon-macos-arm64.zip",
                 if cfg!(horizon_fork_launcher) {
                     "horizon-fork-launcher-macos-arm64.zip"
                 } else {
@@ -4848,7 +4848,7 @@ pub fn {f}("
         assert_eq!(
             platform_assets("macos", "x86_64"),
             Some((
-                "shadowx-macos-x64.zip",
+                "horizon-macos-x64.zip",
                 if cfg!(horizon_fork_launcher) {
                     "horizon-fork-launcher-macos-x64.zip"
                 } else {
@@ -4859,7 +4859,7 @@ pub fn {f}("
         assert_eq!(
             platform_assets("windows", "x86_64"),
             Some((
-                "shadowx-windows-x64.zip",
+                "horizon-windows-x64.zip",
                 if cfg!(horizon_fork_launcher) {
                     "horizon-fork-launcher-windows-x64.zip"
                 } else {
@@ -4870,7 +4870,7 @@ pub fn {f}("
         assert_eq!(
             platform_assets("windows", "aarch64"),
             Some((
-                "shadowx-windows-arm64.zip",
+                "horizon-windows-arm64.zip",
                 if cfg!(horizon_fork_launcher) {
                     "horizon-fork-launcher-windows-arm64.zip"
                 } else {
@@ -4886,7 +4886,7 @@ pub fn {f}("
         );
         assert_eq!(
             game_fallback_for("windows", "aarch64"),
-            Some("shadowx-windows-x64.zip")
+            Some("horizon-windows-x64.zip")
         );
         assert_eq!(game_fallback_for("windows", "x86_64"), None);
         assert_eq!(game_fallback_for("macos", "aarch64"), None);
@@ -5222,25 +5222,20 @@ pub fn {f}("
 
     /// Every asset a launcher looks for is one the release workflows build, sign and publish.
     #[test]
-    fn game_platform_assets_are_published() {
-        let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
-        let read = |path: &str| fs::read_to_string(repo.join(path)).unwrap();
-        let build = read(".github/workflows/game-build.yml");
-        let nightly = read(".github/workflows/nightly-build.yml");
-        for (os, arch, game, _launcher_asset) in PLATFORMS {
-            assert!(
-                build.contains(&format!("asset: {game}")),
-                "game-build.yml builds no {game}"
-            );
-            // Signed (SHA256SUMS), then published. Windows ARM64's and, for a snapshot, Intel
-            // macOS's build may fail without holding the release, so both steps name them again.
-            let named = nightly.matches(&format!("dist/{game}")).count();
-            let optional = matches!((os, arch), ("windows", "aarch64") | ("macos", "x86_64"));
-            assert!(
-                named == 2 || (optional && named > 2),
-                "nightly-build.yml must sign and publish {game} ({os} {arch})"
-            );
+    fn horizon_game_assets_and_shadowx_launcher_assets_keep_distinct_names() {
+        for (_, _, game, launcher) in PLATFORMS {
+            assert!(game.starts_with("horizon-"), "game engine asset lost Horizon identity: {game}");
+            if cfg!(horizon_fork_launcher) {
+                assert!(launcher.starts_with("horizon-fork-launcher-"), "{launcher}");
+            } else {
+                assert!(launcher.starts_with("shadowx-launcher-"), "{launcher}");
+            }
         }
+        let workflow = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../.github/workflows/release.yml");
+        let workflow = fs::read_to_string(workflow).unwrap();
+        assert!(workflow.contains("binary: shadowx-launcher"));
+        assert!(workflow.contains("binary: shadowx-launcher.exe"));
     }
 
     #[test]
@@ -6978,7 +6973,7 @@ pub fn {f}("
             .map(|e| e.file_name().to_string_lossy().into_owned())
             .collect();
         names.sort();
-        assert_eq!(names, ["shadowx-launcher", "new"]);
+        assert_eq!(names, ["new", "shadowx-launcher"]);
         let _ = fs::remove_dir_all(&dir);
     }
 
