@@ -10,6 +10,7 @@ on:
       - "Cargo.lock"
       - "launcher/**"
       - "crates/cargo-horizon-mod/**"
+      - "crates/starling-catalog/**"
       - "packaging/android/**"
       - "packaging/linux/**"
       - "packaging/macos/**"
