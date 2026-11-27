@@ -2529,6 +2529,7 @@ pub(crate) fn copy_base(
 fn carried_over(name: &std::ffi::OsStr, target: Target) -> bool {
     let mut own: Vec<String> = [
         "Horizon.app",
+        "ShadowX.app",
         "native-mods.json",
         "native-data",
         horizon_mod_package::mod_list::NATIVE_DIR,
