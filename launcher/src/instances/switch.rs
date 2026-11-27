@@ -81,7 +81,7 @@ pub fn unkept(instance: &Instance, to: &Plays, horizon: &str) -> Vec<Unkept> {
     let mut out = Vec::new();
     let (was, now) = (from.minecraft(horizon), to.minecraft(horizon));
     if let Some((id, name)) = from.mods_for() {
-        let count = mod_files(&instance.home, id == "horizon");
+        let count = mod_files(&instance.home, id == "shadowx");
         if count > 0 && !to.loads(id) {
             out.push(Unkept::Mods {
                 count,
