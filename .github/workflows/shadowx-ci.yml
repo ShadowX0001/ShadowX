@@ -25,6 +25,8 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
 
       - name: Install Linux build dependencies
         run: |
@@ -64,7 +66,8 @@ jobs:
           git add docs/launcher-commands.md
           if ! git diff --cached --quiet; then
             git commit -m "docs: regenerate ShadowX launcher command reference"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
+            TARGET_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+            git push origin "HEAD:refs/heads/${TARGET_BRANCH}"
           fi
 
       - name: Upload generated launcher command reference
