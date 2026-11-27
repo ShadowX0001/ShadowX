@@ -376,9 +376,9 @@ impl Launcher {
         let edited = editing.is_some();
         let copy = selected.filter(|_| d.copy);
         // The Horizon version is Horizon's instances' alone: a Java one plays its own game.
-        let plays_horizon = d.java.kind == new_instance::NewKind::Horizon;
+        let plays_horizon = d.java.kind == new_instance::NewKind::ShadowX;
         // A new Java instance: what it plays, and its name when none is typed.
-        let java = (editing.is_none() && d.java.kind != new_instance::NewKind::Horizon)
+        let java = (editing.is_none() && d.java.kind != new_instance::NewKind::ShadowX)
             .then(|| d.java.clone());
         let minecraft = java.as_ref().map(|j| {
             j.minecraft(match &self.instances.versions {
@@ -489,7 +489,7 @@ impl Launcher {
             d.busy,
             d.java.kind,
         );
-        let java = !editing && kind != new_instance::NewKind::Horizon;
+        let java = !editing && kind != new_instance::NewKind::ShadowX;
         let n = t.night;
         let from = self
             .selected_instance()
