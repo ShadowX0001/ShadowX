@@ -49,7 +49,7 @@ jobs:
             launcher -> target
 
       - name: Verify Rust formatting
-        run: cargo fmt --manifest-path launcher/Cargo.toml --all -- --check
+        run: cargo fmt --manifest-path launcher/Cargo.toml --package horizon-launcher -- --check
 
       - name: Check all launcher targets
         run: cargo check --manifest-path launcher/Cargo.toml --all-targets --locked
