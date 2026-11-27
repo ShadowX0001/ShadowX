@@ -18,9 +18,9 @@ pub(super) fn snapshot(tag: &str) -> Result<Vec<Release>, String> {
     let release = crate::github::json_optional(&format!(
         "{}/repos/{}/releases/tags/{tag}",
         crate::github::API,
-        super::REPO
+        super::HORIZON_REPO
     ))?
-    .ok_or_else(|| format!("No ShadowX snapshot is tagged {tag}."))?;
+    .ok_or_else(|| format!("No Horizon snapshot is tagged {tag}."))?;
     let settings = super::Settings::load();
     let assets = super::game_assets_for(
         std::env::consts::OS,
@@ -96,7 +96,7 @@ mod tests {
                 assert_eq!(release.nightly.as_deref(), Some(channel));
                 assert_eq!(
                     release.asset,
-                    Some((format!("https://github.com/ShadowX0001/ShadowX/releases/download/{channel}/horizon-linux-x86_64.tar.gz"), 123))
+                    Some((format!("https://github.com/arismoko/horizon/releases/download/{channel}/horizon-linux-x86_64.tar.gz"), 123))
                 );
             }
         }
