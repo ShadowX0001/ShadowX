@@ -46,7 +46,8 @@ pub fn digest(
     keys: &[PublicKey],
     fetch: impl Fn(&str) -> Result<Option<Vec<u8>>, String>,
 ) -> Result<String, String> {
-    if let Some(hex) = horizon_release_sign::legacy_digest_for(repository_for_tag(tag), tag, asset) {
+    if let Some(hex) = horizon_release_sign::legacy_digest_for(repository_for_tag(tag), tag, asset)
+    {
         return Ok(hex.to_owned());
     }
     let sums = fetch(&asset_url(tag, SUMS))?;
