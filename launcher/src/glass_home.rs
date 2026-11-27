@@ -137,7 +137,7 @@ impl Launcher {
     /// ([`Self::switch_edition`]).
     fn edition_tabs(&mut self, java: bool, cx: &mut Context<Self>) -> Div {
         let grass = self.grass_mark(18.);
-        let horizon = self.horizon_mark(18.);
+        let horizon = self.shadowx_mark(18.);
         let tab = |label: &'static str, icon: AnyElement, open: bool| {
             let d = div()
                 .id(SharedString::from(format!("edition-{label}")))
@@ -314,7 +314,7 @@ impl Launcher {
             .is_some_and(|i| i.version.is_none());
         let update = self
             .updates
-            .horizon
+            .shadowx
             .as_ref()
             .filter(|_| follows && !tag.is_empty())
             .map(|r| r.tag.clone());
