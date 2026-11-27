@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: shadowx-ci-${{ github.ref }}
@@ -56,6 +56,16 @@ jobs:
 
       - name: Regenerate launcher command reference for verification
         run: HORIZON_WRITE_DOCS=1 cargo test --manifest-path launcher/Cargo.toml the_launcher_reference
+
+      - name: Commit regenerated launcher command reference
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/launcher-commands.md
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: regenerate ShadowX launcher command reference"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
 
       - name: Upload generated launcher command reference
         uses: actions/upload-artifact@v4
