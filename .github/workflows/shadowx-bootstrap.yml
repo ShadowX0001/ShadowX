@@ -14,6 +14,20 @@ on:
       - "packaging/android/**"
       - "packaging/linux/**"
       - "packaging/macos/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/shadowx-bootstrap.yml"
+      - ".github/workflows/release.yml"
+      - "README.md"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "launcher/**"
+      - "crates/cargo-horizon-mod/**"
+      - "crates/starling-catalog/**"
+      - "packaging/android/**"
+      - "packaging/linux/**"
+      - "packaging/macos/**"
   workflow_dispatch:
 
 permissions:
