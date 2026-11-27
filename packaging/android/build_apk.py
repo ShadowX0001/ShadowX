@@ -37,7 +37,7 @@ HERE = Path(__file__).resolve().parent
 
 APPLICATION_ID = "dev.shadowx.launcher"
 JAVA_PACKAGE = "dev.shadowx.launcher"
-LABEL = "ShadowX"
+LABEL = "ShadowX Launcher"
 # --dev and --preview: an app of its own, installed beside the release (which a build signed with
 # another key cannot install over), with its own folder (StarlingActivity.sharedFolder: StarlingDev,
 # StarlingPreview) and its own sign-in and game files. Preview is what starling-client/starling's
@@ -381,9 +381,10 @@ def link_resources(aapt2, android_jar, out, assets, variant, abi=ABI):
     for folder, size in ICONS.items():
         target = res / folder
         target.mkdir(parents=True)
+        # ShadowX app icon, used at every density instead of the upstream Horizon mark.
         shutil.copyfile(
-            ROOT / "packaging" / "icons" / "hicolor" / size / "apps" / "horizon.png",
-            target / "ic_launcher.png",
+            HERE / "res" / "mipmap-anydpi" / "ic_launcher.xml",
+            target / "ic_launcher.xml",
         )
     # The window themes (res/: the starting window's icon and background).
     shutil.copytree(HERE / "res", res, dirs_exist_ok=True)
