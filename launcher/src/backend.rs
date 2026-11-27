@@ -3240,7 +3240,11 @@ pub fn releases_and_updates(
     releases_and_updates_with(
         release_list,
         installed,
-        || launcher_release_list().map(|list| launcher_releases_in(&list)).unwrap_or_default(),
+        || {
+            launcher_release_list()
+                .map(|list| launcher_releases_in(&list))
+                .unwrap_or_default()
+        },
         on_releases,
     )
 }
@@ -5238,15 +5242,18 @@ pub fn {f}("
     #[test]
     fn horizon_game_assets_and_shadowx_launcher_assets_keep_distinct_names() {
         for (_, _, game, launcher) in PLATFORMS {
-            assert!(game.starts_with("horizon-"), "game engine asset lost Horizon identity: {game}");
+            assert!(
+                game.starts_with("horizon-"),
+                "game engine asset lost Horizon identity: {game}"
+            );
             if cfg!(horizon_fork_launcher) {
                 assert!(launcher.starts_with("horizon-fork-launcher-"), "{launcher}");
             } else {
                 assert!(launcher.starts_with("shadowx-launcher-"), "{launcher}");
             }
         }
-        let workflow = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../.github/workflows/release.yml");
+        let workflow =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../.github/workflows/release.yml");
         let workflow = fs::read_to_string(workflow).unwrap();
         assert!(workflow.contains("output: shadowx-launcher"));
         assert!(workflow.contains("output: shadowx-launcher.exe"));
