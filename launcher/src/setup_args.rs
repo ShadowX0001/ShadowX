@@ -139,7 +139,9 @@ mod tests {
                 .replace("horizon-launcher", "horizon-fork-launcher")
                 .replace("Horizon-Launcher", "Horizon-Fork-Launcher")
         } else {
-            TASKLIST.into()
+            TASKLIST
+                .replace("horizon-launcher", "shadowx-launcher")
+                .replace("Horizon-Launcher", "ShadowX-Launcher")
         }
     }
 
@@ -154,7 +156,7 @@ mod tests {
     #[test]
     fn another_identity_is_never_terminated() {
         let other = if cfg!(horizon_fork_launcher) {
-            "\"horizon-launcher.exe\",\"42\""
+            "\"shadowx-launcher.exe\",\"42\""
         } else {
             "\"horizon-fork-launcher.exe\",\"42\""
         };
