@@ -39,7 +39,7 @@ impl Plays {
     /// Whose mods it loads: ShadowX's, a loader's, or none (Vanilla).
     fn mods_for(&self) -> Option<(&'static str, &'static str)> {
         match self {
-            Plays::ShadowX => Some(("shadowx", "ShadowX")),
+            Plays::ShadowX => Some(("shadowx", "Horizon")),
             Plays::Java { loader, .. } => loader.as_ref().map(|l| (l.kind.id(), l.kind.name())),
         }
     }
