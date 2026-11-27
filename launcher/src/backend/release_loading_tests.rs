@@ -164,7 +164,9 @@ fn empty_or_prebuilt_only_fork_has_no_game_or_launcher_update() {
                 Vec::new,
                 || {
                     launcher_releases_in_with(&list, |url| {
-                        assert!(url.starts_with("https://api.github.com/repos/ShadowX0001/ShadowX/"));
+                        assert!(
+                            url.starts_with("https://api.github.com/repos/ShadowX0001/ShadowX/")
+                        );
                         Ok(missing.clone())
                     })
                 },
@@ -238,7 +240,11 @@ fn each_platform_download_is_bound_to_the_fork_not_the_provider_url() {
                 Some((
                     format!(
                         "https://github.com/{}/releases/download/{tag}/{expected}",
-                        if tag.starts_with("launcher@") { REPO } else { HORIZON_REPO }
+                        if tag.starts_with("launcher@") {
+                            REPO
+                        } else {
+                            HORIZON_REPO
+                        }
                     ),
                     9
                 ))
