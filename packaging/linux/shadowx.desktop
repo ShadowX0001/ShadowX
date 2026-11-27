@@ -2,7 +2,7 @@
 Type=Application
 Name=ShadowX Client
 Comment=ShadowX Minecraft client
-Exec=shadowx-client
+Exec=horizon-client
 Icon=shadowx
 Terminal=false
 Categories=Game;
