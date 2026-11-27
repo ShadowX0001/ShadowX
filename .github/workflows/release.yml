@@ -24,13 +24,13 @@ jobs:
         include:
           - os: ubuntu-latest
             archive: tar.gz
-            binary: horizon-launcher
+            binary: shadowx-launcher
           - os: windows-latest
             archive: zip
-            binary: horizon-launcher.exe
+            binary: shadowx-launcher.exe
           - os: macos-latest
             archive: tar.gz
-            binary: horizon-launcher
+            binary: shadowx-launcher
     steps:
       - name: Checkout
         uses: actions/checkout@v4
