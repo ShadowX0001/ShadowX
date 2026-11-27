@@ -33,7 +33,7 @@ fn baseline(load: impl Fn() -> Result<serde_json::Value, String>) -> (Vec<Releas
     let releases = parse_releases(&load().unwrap(), ASSET, is_game_tag);
     let list = load().unwrap();
     let updates = Updates {
-        horizon: horizon_update(
+        shadowx: shadowx_update(
             &parse_releases(&list, ASSET, is_game_tag),
             &installed_fixture(),
         ),
@@ -172,7 +172,7 @@ fn empty_or_prebuilt_only_fork_has_no_game_or_launcher_update() {
             )
             .unwrap();
             assert!(games.unwrap().is_empty());
-            assert!(updates.horizon.is_none());
+            assert!(updates.shadowx.is_none());
             assert!(updates.launcher.is_none());
         }
     }
@@ -320,7 +320,7 @@ fn benchmark_shared_startup_response() {
             let updates = scope.spawn(|| {
                 let list = load(Duration::from_millis(5)).unwrap();
                 Updates {
-                    horizon: horizon_update(
+                    shadowx: shadowx_update(
                         &parse_releases(&list, ASSET, is_game_tag),
                         &installed_fixture(),
                     ),
