@@ -122,7 +122,7 @@ impl Launcher {
                 shell::text(night::UI, c(n.ink_soft)).child(instances_page::played_line(i))
             }));
         // A Java instance (no Horizon tag) isn't offered Horizon's updates.
-        if let Some(release) = self.updates.horizon.as_ref().filter(|_| !tag.is_empty()) {
+        if let Some(release) = self.updates.shadowx.as_ref().filter(|_| !tag.is_empty()) {
             let installing = self.installing.as_ref().filter(|(t, _)| *t == release.tag);
             let line = shell::text(night::CAPTION, c(n.muted))
                 .flex()
