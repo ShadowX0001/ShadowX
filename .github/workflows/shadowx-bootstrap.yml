@@ -184,17 +184,17 @@ jobs:
       - name: Install cargo-ndk
         run: cargo install cargo-ndk --locked
 
-      - name: Build ShadowX Android ARM64 development APK
+      - name: Build ShadowX Launcher Android ARM64 APK
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/28.2.13676358
           RUSTC_BOOTSTRAP: "1"
-        run: python3 packaging/android/build_apk.py --dev --abi arm64-v8a
+        run: python3 packaging/android/build_apk.py --abi arm64-v8a
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: shadowx-android-arm64-dev
+          name: shadowx-launcher-android-arm64
           path: target/android/*.apk
           if-no-files-found: error
           retention-days: 14
@@ -302,12 +302,12 @@ jobs:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/28.2.13676358
           RUSTC_BOOTSTRAP: '1'
-        run: python3 packaging/android/build_apk.py --dev --abi ${{ matrix.abi }}
+        run: python3 packaging/android/build_apk.py --abi ${{ matrix.abi }}
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: shadowx-android-${{ matrix.abi }}
-          path: target/android/shadowx-dev-0.1.0-${{ matrix.abi }}.apk
+          name: shadowx-launcher-android-${{ matrix.abi }}
+          path: target/android/shadowx-0.1.0-${{ matrix.abi }}.apk
           if-no-files-found: error
           retention-days: 14
