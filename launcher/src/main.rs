@@ -5735,7 +5735,7 @@ mod tests {
             if cfg!(horizon_fork_launcher) {
                 "Horizon Fork Launcher (arismoko)"
             } else {
-                "Horizon Launcher"
+                "ShadowX Launcher"
             }
         );
         assert!(matches!(
