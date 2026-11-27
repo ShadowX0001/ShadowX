@@ -39,7 +39,7 @@ fn menu_registration_preserves_the_package_wrapper() {
         .join(if cfg!(horizon_fork_launcher) {
             "io.github.arismoko.horizonfork.launcher.desktop"
         } else {
-            "horizon-launcher.desktop"
+            "shadowx-launcher.desktop"
         });
     let other = home
         .join("data/applications")
