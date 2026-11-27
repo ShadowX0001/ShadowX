@@ -12,6 +12,8 @@ use std::sync::{Arc, Mutex};
 
 /// Authority for game, launcher and native SDK release reads on this fork.
 pub const REPO: &str = "ShadowX0001/ShadowX";
+/// Upstream Horizon repository that publishes the game engine and native SDK releases.
+pub const HORIZON_REPO: &str = "arismoko/horizon";
 
 /// Where a crash is reported.
 pub fn issues_url() -> String {
@@ -650,9 +652,16 @@ pub fn compare_versions(a: &str, b: &str) -> std::cmp::Ordering {
     release_order(a).cmp(&release_order(b))
 }
 
-/// Every published release of the repository, both kinds, as GitHub's JSON (kept on disk with its
-/// ETag, and read through Kira's mirror past GitHub's rate limit: [`crate::github`]).
+/// Horizon game-engine releases (kept on disk with their ETag and read through its GitHub mirror).
 fn release_list() -> Result<serde_json::Value, String> {
+    Ok(crate::github::json_optional(&format!(
+        "https://api.github.com/repos/{HORIZON_REPO}/releases?per_page=100"
+    ))?
+    .unwrap_or_else(|| serde_json::json!([])))
+}
+
+/// ShadowX launcher releases are hosted separately from the Horizon game engine.
+fn launcher_release_list() -> Result<serde_json::Value, String> {
     Ok(crate::github::json_optional(&format!(
         "https://api.github.com/repos/{REPO}/releases?per_page=100"
     ))?
@@ -1056,7 +1065,7 @@ fn signed_digest(tag: &str, asset: &str) -> Result<String, String> {
     crate::signed::digest(
         tag,
         asset,
-        &horizon_release_sign::trusted_keys_for(REPO),
+        &horizon_release_sign::trusted_keys_for(HORIZON_REPO),
         fetch_small,
     )
 }
@@ -3222,19 +3231,24 @@ fn launcher_update_from(releases: &[Release], own: &str) -> Option<Release> {
         .cloned()
 }
 
-/// Load the game's release list and both update kinds from the same GitHub response.
-/// Publish the game releases before any fallback lookups for older launcher tags, so those
-/// lookups cannot hold up the release pages or opening animation. A list error reaches both.
+/// Load Horizon game releases and ShadowX launcher releases independently.
+/// Publish the game releases before querying the launcher repository, so a slow launcher lookup
+/// cannot hold up the Versions page or opening animation. A launcher lookup failure is non-fatal.
 pub fn releases_and_updates(
     on_releases: impl FnOnce(Result<Vec<Release>, String>),
 ) -> Result<Updates, String> {
-    releases_and_updates_with(release_list, installed, launcher_releases_in, on_releases)
+    releases_and_updates_with(
+        release_list,
+        installed,
+        || launcher_release_list().map(|list| launcher_releases_in(&list)).unwrap_or_default(),
+        on_releases,
+    )
 }
 
 fn releases_and_updates_with(
     load: impl FnOnce() -> Result<serde_json::Value, String>,
     installed: impl FnOnce() -> Vec<String>,
-    launchers: impl FnOnce(&serde_json::Value) -> Vec<Release>,
+    launchers: impl FnOnce() -> Vec<Release>,
     on_releases: impl FnOnce(Result<Vec<Release>, String>),
 ) -> Result<Updates, String> {
     let list = match load() {
@@ -3251,7 +3265,7 @@ fn releases_and_updates_with(
     on_releases(Ok(releases));
     Ok(Updates {
         shadowx,
-        launcher: launcher_update(&launchers(&list)),
+        launcher: launcher_update(&launchers()),
     })
 }
 
