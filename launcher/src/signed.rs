@@ -4,7 +4,16 @@
 //! with the SHA-256 pinned for it in legacy-releases.txt (a rollback). Anything else is refused
 //! with a message saying why.
 
-use crate::backend::REPO;
+use crate::backend::{HORIZON_REPO, REPO};
+
+/// Game releases remain signed by Horizon; only launcher-tagged releases belong to ShadowX.
+pub fn repository_for_tag(tag: &str) -> &'static str {
+    if tag.starts_with("launcher@") || tag.starts_with("launcher-v") {
+        REPO
+    } else {
+        HORIZON_REPO
+    }
+}
 use horizon_release_sign::{Channel, PublicKey, SIGNATURE, SIGNATURE_V2, SUMS};
 
 /// Where a release's attached file downloads from (GitHub's fixed address for it).
@@ -20,8 +29,9 @@ pub fn asset_url(tag: &str, name: &str) -> String {
             })
             .collect()
     };
+    let repository = repository_for_tag(tag);
     format!(
-        "https://github.com/{REPO}/releases/download/{}/{}",
+        "https://github.com/{repository}/releases/download/{}/{}",
         component(tag),
         component(name)
     )
@@ -36,7 +46,7 @@ pub fn digest(
     keys: &[PublicKey],
     fetch: impl Fn(&str) -> Result<Option<Vec<u8>>, String>,
 ) -> Result<String, String> {
-    if let Some(hex) = horizon_release_sign::legacy_digest_for(REPO, tag, asset) {
+    if let Some(hex) = horizon_release_sign::legacy_digest_for(repository_for_tag(tag), tag, asset) {
         return Ok(hex.to_owned());
     }
     let sums = fetch(&asset_url(tag, SUMS))?;
@@ -90,7 +100,7 @@ mod tests {
     #[test]
     fn metadata_cannot_escape_the_fork_download_path() {
         assert_eq!(asset_url("v1/../../other?x#y", "a%b.zip"),
-            "https://github.com/ShadowX0001/ShadowX/releases/download/v1%2F..%2F..%2Fother%3Fx%23y/a%25b.zip");
+            "https://github.com/arismoko/horizon/releases/download/v1%2F..%2F..%2Fother%3Fx%23y/a%25b.zip");
     }
 
     #[test]
@@ -135,7 +145,7 @@ mod tests {
         let signature = key.sign("v2099.01.01", sums.as_bytes());
         // GitHub as it answers for a signed release (any tag: the files are what a replay would serve).
         let signed = |url: &str| -> Result<Option<Vec<u8>>, String> {
-            assert!(url.starts_with("https://github.com/ShadowX0001/ShadowX/releases/download/"));
+            assert!(url.starts_with("https://github.com/arismoko/horizon/releases/download/"));
             Ok(Some(
                 if url.ends_with(".sig") {
                     signature.clone()
