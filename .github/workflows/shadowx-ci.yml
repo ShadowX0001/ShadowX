@@ -54,6 +54,17 @@ jobs:
       - name: Check all launcher targets
         run: cargo check --manifest-path launcher/Cargo.toml --all-targets --locked
 
+      - name: Regenerate launcher command reference for verification
+        run: HORIZON_WRITE_DOCS=1 cargo test --manifest-path launcher/Cargo.toml the_launcher_reference
+
+      - name: Upload generated launcher command reference
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-launcher-command-reference
+          path: docs/launcher-commands.md
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Run launcher tests
         run: cargo test --manifest-path launcher/Cargo.toml --locked
 
