@@ -29,7 +29,7 @@ impl Launcher {
     /// The search's placeholder: the registry's count when it is listed whole.
     pub(super) fn mods_placeholder(&self) -> SharedString {
         let m = &self.mods;
-        let registry = m.source == SourceId::Horizon && m.java.is_none();
+        let registry = m.source == SourceId::ShadowX && m.java.is_none();
         if registry && m.kind == PackKind::Mod && m.searched && m.text.text().is_empty() {
             // Results come in pages: only a last page gives the real count.
             if m.more {
@@ -119,7 +119,7 @@ impl Launcher {
         }
 
         let java = self.mods.java_for(self.mods.kind).is_some();
-        let registry = self.mods.source == SourceId::Horizon && !java;
+        let registry = self.mods.source == SourceId::ShadowX && !java;
         let everything = self.mods.everything;
         let extras = div()
             .flex()
@@ -361,7 +361,7 @@ impl Launcher {
                     "Nothing matches “{query}”.",
                     &[("query", m.text.text().trim())],
                 )
-            } else if m.source == SourceId::Horizon {
+            } else if m.source == SourceId::ShadowX {
                 tr("Nothing in ShadowX's registry matches yet.").to_string()
             } else if m.everything {
                 tr("Nothing found.").to_string()
@@ -424,7 +424,7 @@ impl Launcher {
                 div().flex_none().w(px(20.)).into_any_element()
             };
             // The registry's rows end with downloads, the others' with how they run (`compat`).
-            let right = if p.source == SourceId::Horizon {
+            let right = if p.source == SourceId::ShadowX {
                 ui::text(13., FontWeight::NORMAL, 0.5)
                     .flex()
                     .items_center()
@@ -572,7 +572,7 @@ impl Launcher {
         let about = m
             .about
             .get(&p.id)
-            .filter(|_| p.source == SourceId::Horizon)
+            .filter(|_| p.source == SourceId::ShadowX)
             .map(|lines| lines.join(" · "));
 
         // The action: Remove (then Remove for good), Install or Import, or why not.
@@ -668,7 +668,7 @@ impl Launcher {
                         .child(by.join(" · ")),
                 )
                 .children(
-                    (p.source == SourceId::Horizon)
+                    (p.source == SourceId::ShadowX)
                         .then(|| stars(&p.id, &t))
                         .flatten()
                         .map(|s| s.mt(px(8.))),
