@@ -17,7 +17,7 @@ fn main() {
         println!("cargo:rustc-link-arg-bins=/DEPENDENTLOADFLAG:0x800");
     }
     let dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_default();
-    let icon = if repository == "arismoko/horizon" {
+    let icon = if repository == "ShadowX0001/ShadowX" {
         "fork/launcher.ico"
     } else {
         "horizon.ico"
