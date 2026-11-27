@@ -1,4 +1,4 @@
-//! New instance's kinds (docs/design-system.md, "Night"; plan R0, screen 4): ShadowX, Vanilla
+//! New instance's kinds (docs/design-system.md, "Night"; plan R0, screen 4): Horizon, Vanilla
 //! (Minecraft: Java Edition as Mojang ships it) and Modded (with Fabric, Quilt, Forge or NeoForge). A Java kind picks
 //! its version from Mojang's public list (`minecraft_versions`), fetched once when the dialog first
 //! needs it; the game itself comes with the first Play, for an account that owns it.
@@ -126,7 +126,7 @@ impl Launcher {
             _ => None,
         };
         let base = match j.kind {
-            NewKind::ShadowX => tr("My ShadowX").to_string(),
+            NewKind::ShadowX => tr("My Horizon").to_string(),
             _ => j.default_name(&j.minecraft(versions)?),
         };
         let taken: Vec<&str> = self
@@ -242,7 +242,7 @@ impl Launcher {
         let now = self.instances.dialog.as_ref().map(|d| d.java.kind);
         div().flex().gap(px(4.)).children(
             [
-                (NewKind::ShadowX, "ShadowX"),
+                (NewKind::ShadowX, "Horizon"),
                 (NewKind::Vanilla, "Vanilla"),
                 (NewKind::Modded, "Modded"),
             ]
