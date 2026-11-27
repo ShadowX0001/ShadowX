@@ -15,7 +15,7 @@ pub const APP: &str = "ShadowX.app";
 /// The game, then horizon-ctl, which the game looks for beside itself (Copy Connection Details).
 const PROGRAMS: [&str; 2] = ["horizon-client", "horizon-ctl"];
 
-const ICON: &[u8] = include_bytes!("../../packaging/icons/horizon.icns");
+const ICON: &[u8] = include_bytes!("../../packaging/icons/fork/launcher.icns");
 
 /// Its own identifier, so macOS keeps it apart from the launcher (dev.horizon.launcher); the
 /// games category lets macOS turn Game Mode on when it plays full screen.
@@ -28,7 +28,7 @@ const INFO_PLIST: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 	<key>CFBundleExecutable</key>
 	<string>horizon-client</string>
 	<key>CFBundleIconFile</key>
-	<string>horizon</string>
+	<string>shadowx</string>
 	<key>CFBundleIdentifier</key>
 	<string>dev.shadowx.game</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -51,7 +51,7 @@ const INFO_PLIST: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 /// microphone for voice chat; without the key macOS would kill the game instead of asking).
 const MIC_DESCRIPTION: &str = "__MIC_DESCRIPTION__";
 
-/// Brings `version`'s Horizon.app up to date and returns the game's program inside it. A program
+/// Brings `version`'s ShadowX.app up to date and returns the game's program inside it. A program
 /// replaced in the version folder (a reinstall, a build copied over) is linked again.
 pub fn ensure(version: &Path) -> io::Result<PathBuf> {
     let contents = version.join(APP).join("Contents");
@@ -68,7 +68,7 @@ pub fn ensure(version: &Path) -> io::Result<PathBuf> {
         1,
     );
     write_if_changed(&contents.join("Info.plist"), plist.as_bytes())?;
-    write_if_changed(&contents.join("Resources/horizon.icns"), ICON)?;
+    write_if_changed(&contents.join("Resources/shadowx.icns"), ICON)?;
     for (i, name) in PROGRAMS.into_iter().enumerate() {
         let (from, to) = (version.join(name), programs.join(name));
         // Releases before horizon-ctl shipped have only the game.
@@ -399,7 +399,7 @@ mod tests {
         assert!(!value.is_empty());
         assert!(!plist.contains("__MIC_DESCRIPTION__"));
         assert_eq!(
-            fs::read(version.join("ShadowX.app/Contents/Resources/horizon.icns")).unwrap(),
+            fs::read(version.join("ShadowX.app/Contents/Resources/shadowx.icns")).unwrap(),
             ICON
         );
 
