@@ -2907,7 +2907,6 @@ mod tests {
     }
 }
 
-
 // Strict entry point for user-supplied control-layout files. Keep from_json permissive for
 // old in-game settings migrations; external imports must not silently turn malformed values
 // into a default layout.
@@ -3075,14 +3074,19 @@ mod external_layout_import_tests {
 
     #[test]
     fn imports_a_supported_layout_and_clamps_positions() {
-        let imported = import_layout_json(
-            r#"{"stick":{"x":4.0,"y":-1.0},"buttons":{"jump":{"x":0.4}}}"#,
-        )
-        .unwrap();
+        let imported =
+            import_layout_json(r#"{"stick":{"x":4.0,"y":-1.0},"buttons":{"jump":{"x":0.4}}}"#)
+                .unwrap();
         assert_eq!(imported.stick.x, 1.0);
         assert_eq!(imported.stick.y, 0.0);
         assert_eq!(
-            imported.buttons.iter().find(|(button, _)| *button == Button::Jump).unwrap().1.x,
+            imported
+                .buttons
+                .iter()
+                .find(|(button, _)| *button == Button::Jump)
+                .unwrap()
+                .1
+                .x,
             0.4
         );
     }

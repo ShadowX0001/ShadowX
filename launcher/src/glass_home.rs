@@ -64,7 +64,7 @@ pub(super) enum HomeMenu {
 }
 
 impl Launcher {
-    /// The head: what Home shows above its tabs. `tag`: the Horizon version it plays (empty for a
+    /// The head: what Home shows above its tabs. `tag`: the ShadowX version it plays (empty for a
     /// Java instance); `prepared`: whether that version's files are ready.
     pub(super) fn glass_home_head(
         &mut self,
@@ -137,7 +137,7 @@ impl Launcher {
     /// ([`Self::switch_edition`]).
     fn edition_tabs(&mut self, java: bool, cx: &mut Context<Self>) -> Div {
         let grass = self.grass_mark(18.);
-        let horizon = self.horizon_mark(18.);
+        let horizon = self.shadowx_mark(18.);
         let tab = |label: &'static str, icon: AnyElement, open: bool| {
             let d = div()
                 .id(SharedString::from(format!("edition-{label}")))
@@ -184,7 +184,7 @@ impl Launcher {
     }
 
     /// An edition tab's click: the instance of that edition (`java`) played last, or, with none,
-    /// the New instance dialog on Vanilla or Horizon.
+    /// the New instance dialog on Vanilla or ShadowX.
     pub(super) fn switch_edition(&mut self, java: bool, cx: &mut Context<Self>) {
         let pick = edition_pick(&self.instances.list, java).cloned();
         match pick {
@@ -194,7 +194,7 @@ impl Launcher {
                 let kind = if java {
                     new_instance::NewKind::Vanilla
                 } else {
-                    new_instance::NewKind::Horizon
+                    new_instance::NewKind::ShadowX
                 };
                 self.pick_kind(kind, cx);
             }
@@ -314,7 +314,7 @@ impl Launcher {
             .is_some_and(|i| i.version.is_none());
         let update = self
             .updates
-            .horizon
+            .shadowx
             .as_ref()
             .filter(|_| follows && !tag.is_empty())
             .map(|r| r.tag.clone());
@@ -733,7 +733,7 @@ impl Launcher {
     }
 
     /// The folder button and its ⋯ (`FolderGroup`), which shows under the pointer or while its
-    /// menu is open: the instance's folder, its screenshots, and (Horizon) the Minecraft folder.
+    /// menu is open: the instance's folder, its screenshots, and (ShadowX) the Minecraft folder.
     fn folder_group(&self, horizon: bool, cx: &mut Context<Self>) -> Option<Div> {
         let t = self.theme;
         let instance = self.selected_instance()?;

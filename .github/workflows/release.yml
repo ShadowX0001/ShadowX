@@ -3,7 +3,7 @@ name: ShadowX release builds
 on:
   push:
     tags:
-      - "v*"
+      - "launcher@*"
   workflow_dispatch:
 
 permissions:
@@ -23,14 +23,21 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            archive: tar.gz
             binary: horizon-launcher
+            output: shadowx-launcher
+            asset: shadowx-launcher-linux-x86_64.tar.gz
           - os: windows-latest
-            archive: zip
             binary: horizon-launcher.exe
-          - os: macos-latest
-            archive: tar.gz
+            output: shadowx-launcher.exe
+            asset: shadowx-launcher-windows-x64.zip
+          - os: macos-14
             binary: horizon-launcher
+            output: shadowx-launcher
+            asset: shadowx-launcher-macos-arm64.zip
+          - os: macos-13
+            binary: horizon-launcher
+            output: shadowx-launcher
+            asset: shadowx-launcher-macos-x64.zip
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,16 +68,22 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force release-assets | Out-Null
-          Copy-Item "launcher/target/release/${{ matrix.binary }}" release-assets/
-          Compress-Archive -Path "release-assets/${{ matrix.binary }}" -DestinationPath "release-assets/ShadowX-Windows-x64.zip"
-          Remove-Item "release-assets/${{ matrix.binary }}"
+          Copy-Item "launcher/target/release/${{ matrix.binary }}" "release-assets/${{ matrix.output }}"
+          Compress-Archive -Path "release-assets/${{ matrix.output }}" -DestinationPath "release-assets/${{ matrix.asset }}"
+          Remove-Item "release-assets/${{ matrix.output }}"
 
       - name: Package Unix launcher
         if: runner.os != 'Windows'
         shell: bash
         run: |
           mkdir -p release-assets
-          tar -C launcher/target/release -czf "release-assets/ShadowX-${{ matrix.os }}.tar.gz" "${{ matrix.binary }}"
+          cp "launcher/target/release/${{ matrix.binary }}" "release-assets/${{ matrix.output }}"
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            tar -C release-assets -czf "release-assets/${{ matrix.asset }}" "${{ matrix.output }}"
+          else
+            (cd release-assets && zip -q "${{ matrix.asset }}" "${{ matrix.output }}")
+          fi
+          rm "release-assets/${{ matrix.output }}"
 
       - name: Upload desktop release asset
         uses: actions/upload-artifact@v4
@@ -151,7 +164,7 @@ jobs:
   publish:
     name: Publish GitHub Release
     needs: [desktop, android]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/launcher@')
     runs-on: ubuntu-latest
     steps:
       - name: Download all platform assets

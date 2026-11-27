@@ -12,6 +12,8 @@ use std::sync::{Arc, Mutex};
 
 /// Authority for game, launcher and native SDK release reads on this fork.
 pub const REPO: &str = "ShadowX0001/ShadowX";
+/// Upstream Horizon repository that publishes the game engine and native SDK releases.
+pub const HORIZON_REPO: &str = "arismoko/horizon";
 
 /// Where a crash is reported.
 pub fn issues_url() -> String {
@@ -23,7 +25,7 @@ pub const AGENT_DOCS_URL: &str = "https://playhorizon.dev/docs/agents";
 /// This launcher's version: the release workflow sets `HORIZON_LAUNCHER_VERSION` from the
 /// tag it builds (no version-bump commits); other builds say Cargo.toml's.
 pub const VERSION: &str = version_or(option_env!("HORIZON_LAUNCHER_VERSION"));
-/// Launcher releases are tagged `launcher@X.Y.Z` from 0.2 on (docs/versioning.md), and Horizon's
+/// Launcher releases are tagged `launcher@X.Y.Z` from 0.2 on (docs/versioning.md), and ShadowX's
 /// own `vX.Y.Z`. Before 0.2 they were `launcher-vX.Y.Z` and `vYYYY.MM.DD[.N]`: every 0.2 tag is
 /// newer than every one of those ([`release_order`]).
 pub const LAUNCHER_TAG_PREFIX: &str = "launcher@";
@@ -94,7 +96,7 @@ const fn platform_assets(os: &str, arch: &str) -> Option<(&'static str, &'static
 /// what `horizon-launcher-setup-arm64.exe` installs.
 const OWN_ASSETS: Option<(&str, &str)> =
     platform_assets(std::env::consts::OS, std::env::consts::ARCH);
-/// The game build this launcher installs, None where Horizon has none.
+/// The game build this launcher installs, None where ShadowX has none.
 pub const ASSET: Option<&str> = match OWN_ASSETS {
     Some((game, _)) => Some(game),
     None => None,
@@ -449,7 +451,7 @@ const fn game_fallback_for(os: &str, arch: &str) -> Option<&'static str> {
 pub const LAUNCHER_APPIMAGE_ASSET: Option<&str> = Some(if cfg!(horizon_fork_launcher) {
     "horizon-fork-launcher-linux-x86_64.AppImage"
 } else {
-    "horizon-launcher-linux-x86_64.AppImage"
+    "shadowx-launcher-linux-x86_64.AppImage"
 });
 #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
 pub const LAUNCHER_APPIMAGE_ASSET: Option<&str> = None;
@@ -471,7 +473,7 @@ pub(crate) const CLIENT: &str = if cfg!(windows) {
 pub(crate) fn agent(url: &str) -> ureq::Agent {
     crate::proxy::agent(
         ureq::AgentBuilder::new()
-            .user_agent(&format!("horizon-launcher/{VERSION}"))
+            .user_agent(&format!("shadowx-launcher/{VERSION}"))
             // A connection that goes quiet fails instead of waiting for ever.
             .timeout_connect(std::time::Duration::from_secs(15))
             .timeout_read(std::time::Duration::from_secs(60)),
@@ -522,7 +524,7 @@ pub(crate) fn get_unless_missing(url: &str) -> Result<Option<ureq::Response>, St
     }
 }
 
-/// A Horizon game tag: `v` then a digit (`v2026.10.13`). Launcher tags never match.
+/// A ShadowX game tag: `v` then a digit (`v2026.10.13`). Launcher tags never match.
 pub fn is_game_tag(tag: &str) -> bool {
     tag.strip_prefix('v')
         .is_some_and(|rest| rest.starts_with(|c: char| c.is_ascii_digit()))
@@ -556,7 +558,7 @@ fn own_tag_of(tag: Option<&str>, injected: Option<&str>) -> String {
     }
 }
 
-/// Where a tag or version stands among Horizon's releases (docs/versioning.md): the tags from
+/// Where a tag or version stands among ShadowX's releases (docs/versioning.md): the tags from
 /// before 0.2 (`vYYYY.MM.DD[.N]`, `launcher-vX.Y.Z`) and bare versions first, compared number by
 /// number with missing parts as zero and anything after a `-` ignored, as launchers always did;
 /// then the 0.2 tags (`vX.Y.Z`, `launcher@X.Y.Z`) in semver's order, a pre-release
@@ -567,7 +569,7 @@ pub enum ReleaseOrder {
     Before02(Vec<u64>),
     Semver([u64; 3], Prerelease),
     /// A Nightly (`nightly-<date>-<commit>`), by its date: newer than every release, since the
-    /// Nightly is the only build Horizon ships.
+    /// Nightly is the only build ShadowX ships.
     Nightly(String),
 }
 
@@ -650,9 +652,16 @@ pub fn compare_versions(a: &str, b: &str) -> std::cmp::Ordering {
     release_order(a).cmp(&release_order(b))
 }
 
-/// Every published release of the repository, both kinds, as GitHub's JSON (kept on disk with its
-/// ETag, and read through Kira's mirror past GitHub's rate limit: [`crate::github`]).
+/// Horizon game-engine releases (kept on disk with their ETag and read through its GitHub mirror).
 fn release_list() -> Result<serde_json::Value, String> {
+    Ok(crate::github::json_optional(&format!(
+        "https://api.github.com/repos/{HORIZON_REPO}/releases?per_page=100"
+    ))?
+    .unwrap_or_else(|| serde_json::json!([])))
+}
+
+/// ShadowX launcher releases are hosted separately from the Horizon game engine.
+fn launcher_release_list() -> Result<serde_json::Value, String> {
     Ok(crate::github::json_optional(&format!(
         "https://api.github.com/repos/{REPO}/releases?per_page=100"
     ))?
@@ -704,7 +713,7 @@ fn is_launcher_tag(tag: &str) -> bool {
     launcher_version(tag).is_some()
 }
 
-/// Published Horizon builds, newest first: the current Nightly (the only build Horizon ships since
+/// Published ShadowX builds, newest first: the current Nightly (the only build ShadowX ships since
 /// 2026-10-28, docs/release-flow.md), the last week's Nightlies, then the releases from before.
 /// Drafts never reach the anonymous API, and launcher releases are left out.
 pub fn releases() -> Result<Vec<Release>, String> {
@@ -812,7 +821,7 @@ fn newest_launcher_tags(refs: &serde_json::Value) -> Vec<String> {
     tags
 }
 
-/// The newest Horizon release that has a build for this platform.
+/// The newest ShadowX release that has a build for this platform.
 pub fn latest(releases: &[Release]) -> Option<&Release> {
     releases.iter().find(|r| r.asset.is_some())
 }
@@ -1056,7 +1065,7 @@ fn signed_digest(tag: &str, asset: &str) -> Result<String, String> {
     crate::signed::digest(
         tag,
         asset,
-        &horizon_release_sign::trusted_keys_for(REPO),
+        &horizon_release_sign::trusted_keys_for(HORIZON_REPO),
         fetch_small,
     )
 }
@@ -1172,7 +1181,7 @@ pub fn install(release: &Release, progress: impl Fn(f32)) -> Result<(), String> 
                 .filter(|v| *v == release.tag)
                 .ok_or_else(|| {
                     crate::i18n::trf(
-                        "This Nightly's title ({title}) doesn't name its date and commit as Horizon \
+                        "This Nightly's title ({title}) doesn't name its date and commit as ShadowX \
                          signs them, so it can't be checked: it was not installed.",
                         &[("title", &format!("{:?}", release.name))],
                     )
@@ -1186,7 +1195,7 @@ pub fn install(release: &Release, progress: impl Fn(f32)) -> Result<(), String> 
             )?
         }
         None if is_game_tag(tag) => signed_digest(tag, asset)?,
-        None => return Err(format!("{tag} is not a Horizon release.")),
+        None => return Err(format!("{tag} is not a ShadowX release.")),
     };
     install_as(
         release,
@@ -1249,7 +1258,7 @@ pub fn disk_use(tag: &str) -> u64 {
     size(&version_dir(tag))
 }
 
-/// The Minecraft version a Horizon build targets, from its research-lock.json.
+/// The Minecraft version a ShadowX build targets, from its research-lock.json.
 pub fn game_version(tag: &str) -> String {
     game_version_at(&version_dir(tag))
 }
@@ -1391,7 +1400,7 @@ pub fn resources_summary(prepared: bool, sounds: bool, version: &str) -> String 
     use crate::i18n::trf;
     match (prepared, sounds) {
         (false, _) => trf(
-            "Not prepared. Horizon needs the files of your own Minecraft {version}.",
+            "Not prepared. ShadowX needs the files of your own Minecraft {version}.",
             &[("version", version)],
         ),
         (true, true) => trf("Prepared for Minecraft {version}", &[("version", version)]),
@@ -1609,7 +1618,7 @@ pub(crate) fn copy_dir_except(from: &Path, to: &Path, skip: Option<&Path>) -> st
 /// After an install: when `tag` is not prepared but another installed version made the same
 /// resources, copies them (not hard links: preparing again rewrites files in place, which would
 /// change both). The player then needs neither their Minecraft folder nor a new preparation to
-/// play a release that only changed Horizon. Returns the version they came from.
+/// play a release that only changed ShadowX. Returns the version they came from.
 fn reuse_prepared(versions: &Path, tag: &str) -> Option<String> {
     let target = versions.join(tag);
     let to = resources_at(&target);
@@ -1810,7 +1819,7 @@ pub fn complete_assets(tag: &str) {
     });
 }
 
-/// Horizon's own download (an owner's) may have stopped before the sounds and the languages,
+/// ShadowX's own download (an owner's) may have stopped before the sounds and the languages,
 /// and the copies of `complete_assets` read them from its store: asked again, once per run, through
 /// the same owner gate as any download from Mojang (`download_for_owner`), which keeps the files
 /// already whole. Called where a download is expected (`reuse_prepared_everywhere`), never on Play.
@@ -1907,7 +1916,7 @@ fn complete_assets_in(
 
 /// The Minecraft folders whose asset store can hold what a prepared version lacks: the one
 /// chosen in the launcher, the official launcher's (or HORIZON_MINECRAFT_DIR), the folder
-/// other launchers' files are linked into and Horizon's own download, then every launcher's
+/// other launchers' files are linked into and ShadowX's own download, then every launcher's
 /// default folder.
 fn minecraft_folders() -> Vec<PathBuf> {
     let mut folders: Vec<PathBuf> = Settings::load().minecraft_dir.into_iter().collect();
@@ -1997,13 +2006,13 @@ fn download_for_owner(
         &mut accounts,
     );
     if let Err(e) = accounts.save_renewed() {
-        log(format!("Horizon: the accounts are not saved: {e}"));
+        log(format!("ShadowX: the accounts are not saved: {e}"));
     }
     download_for(pins, dir, pass, !accounts.accounts.is_empty(), fetch, log)
 }
 
 /// Downloads Minecraft `id` (any version on Mojang's list, its version file's sha1 from it) into
-/// Horizon's own game folder, in the official launcher's layout, for an account that owns the
+/// ShadowX's own game folder, in the official launcher's layout, for an account that owns the
 /// game (asked again now). Returns that folder.
 pub fn download_version_for_owner(
     id: &str,
@@ -2037,7 +2046,7 @@ pub fn java_game(
 ) -> Result<Command, String> {
     let game = instance.java.as_ref().ok_or_else(|| {
         format!(
-            "{} plays Horizon, not Minecraft: Java Edition",
+            "{} plays ShadowX, not Minecraft: Java Edition",
             instance.name
         )
     })?;
@@ -2146,7 +2155,7 @@ fn download_for(
                 sources::Os::Windows => "windows",
             };
             mojang::download(pins, dir, os, 8, fetch, &mojang::CANCEL, log).map_err(|e| {
-                format!("\n  • Horizon tried to download {v} from Mojang for {name}, but: {e}")
+                format!("\n  • ShadowX tried to download {v} from Mojang for {name}, but: {e}")
             })
         }
         // An owner by its last answer, who can't be asked now.
@@ -2156,11 +2165,11 @@ fn download_for(
             pass.offline.unwrap_or_default()
         )),
         Err(_) if signed_in => Err(
-            "\n  • No signed-in account owns Minecraft: Java Edition, so Horizon can't download it."
+            "\n  • No signed-in account owns Minecraft: Java Edition, so ShadowX can't download it."
                 .into(),
         ),
         Err(_) => Err(format!(
-            "\n  • Or sign in with the Microsoft account that owns Minecraft: Horizon then \
+            "\n  • Or sign in with the Microsoft account that owns Minecraft: ShadowX then \
              downloads {v} from Mojang itself."
         )),
     }
@@ -2169,7 +2178,7 @@ fn download_for(
 /// The Java home for this version: a runtime for precompiled exporters, a JDK for older
 /// preparers or changed sources. Forward the selection to external preparers too.
 /// Else try the official launcher's Java in `games`, then download the runtime named by
-/// `manifest` into Horizon's game folder (Mojang's runtimes are whole JDKs).
+/// `manifest` into ShadowX's game folder (Mojang's runtimes are whole JDKs).
 fn java(
     major: i64,
     compiler: bool,
@@ -2219,7 +2228,7 @@ fn java(
     let runtime = data_dir().join("minecraft").join("runtime");
     let home = mojang::java_runtime(&component, &runtime, 8, &fetch, &mojang::CANCEL, log)
         .map_err(|e| {
-        format!("{missing}\n  • Horizon also tried to download Minecraft's own Java from Mojang, but: {e}")
+        format!("{missing}\n  • ShadowX also tried to download Minecraft's own Java from Mojang, but: {e}")
     })?;
     find(major, &[home]).map(|jdk| jdk.home())
 }
@@ -2337,7 +2346,7 @@ pub fn preparer(
             .and_then(|lock| sources::Pins::read(&lock))
             .ok_or("The version's research-lock.json doesn't pin the Minecraft files")?;
         let own = data_dir().join("minecraft");
-        let mut known = vec![("Horizon's own download", own.clone())];
+        let mut known = vec![("ShadowX's own download", own.clone())];
         known.extend(
             sources::Folders::current()
                 .map(|f| sources::known_folders(sources::Os::current(), &f))
@@ -2613,10 +2622,10 @@ pub fn crash_summary(report: &str) -> Option<String> {
 }
 
 /// The line the game prints when it has drawn its first frame.
-pub const GAME_FIRST_FRAME: &str = "Horizon: first frame";
+pub const GAME_FIRST_FRAME: &str = "ShadowX: first frame";
 
 /// Whether a game's output ends in a crash while its Vulkan renderer started: an adapter line
-/// (`Horizon renderer: <GPU> (Vulkan, <type>)`) and no first frame. A native crash in a graphics
+/// (`ShadowX renderer: <GPU> (Vulkan, <type>)`) and no first frame. A native crash in a graphics
 /// driver leaves no crash report, only those lines (#746).
 pub fn vulkan_start_crashed<S: AsRef<str>>(lines: impl IntoIterator<Item = S>) -> bool {
     let mut vulkan = false;
@@ -2625,7 +2634,7 @@ pub fn vulkan_start_crashed<S: AsRef<str>>(lines: impl IntoIterator<Item = S>) -
         if line.starts_with(GAME_FIRST_FRAME) {
             return false;
         }
-        if let Some(adapter) = line.strip_prefix("Horizon renderer: ") {
+        if let Some(adapter) = line.strip_prefix("ShadowX renderer: ") {
             // The adapter line, not one of the start's steps: "<GPU> (<backend>, <type>)".
             if adapter.ends_with(')') && adapter.contains(" (") {
                 vulkan = adapter.contains(" (Vulkan, ");
@@ -2808,18 +2817,18 @@ pub fn client_command(tag: &str) -> Command {
     }
     // PipeWire remembers volume and mute per application name. The game's own name is
     // "PipeWire ALSA [horizon-client]", shared with development and test runs, where
-    // muting it once left every later game silent: played from here it is "Horizon".
+    // muting it once left every later game silent: played from here it is "ShadowX".
     if std::env::var_os("PIPEWIRE_PROPS").is_none() {
         cmd.env(
             "PIPEWIRE_PROPS",
-            "{ application.name = \"Horizon\" media.role = \"Game\" }",
+            "{ application.name = \"ShadowX\" media.role = \"Game\" }",
         );
     }
     cmd
 }
 
-/// The game's program: on macOS the one inside the version's Horizon.app, so the Dock and Cmd+Tab
-/// show Horizon's name and icon (game_app.rs); the bare binary elsewhere, or if that fails.
+/// The game's program: on macOS the one inside the version's ShadowX.app, so the Dock and Cmd+Tab
+/// show ShadowX's name and icon (game_app.rs); the bare binary elsewhere, or if that fails.
 pub(crate) fn client_program(tag: &str) -> PathBuf {
     let dir = version_dir(tag);
     #[cfg(target_os = "macos")]
@@ -2879,7 +2888,7 @@ pub fn no_version_installed() -> String {
     format!(
         "{} {}",
         tr("No version is installed yet."),
-        tr("Run `horizon-launcher install latest` to get one.")
+        tr("Run `shadowx-launcher install latest` to get one.")
     )
 }
 
@@ -3054,7 +3063,7 @@ pub fn need_prepared(tag: &str) -> Result<(), String> {
         Ok(())
     } else {
         Err(format!(
-            "{tag} is not prepared yet. Prepare it first: `horizon-launcher prepare --version {tag}` \
+            "{tag} is not prepared yet. Prepare it first: `shadowx-launcher prepare --version {tag}` \
              uses your own Minecraft {v}, or downloads it from Mojang for the signed-in account \
              that owns it.",
             v = game_version(tag)
@@ -3065,7 +3074,7 @@ pub fn need_prepared(tag: &str) -> Result<(), String> {
 /// Says on stderr which step Play is at, one line each: a terminal run shows where it stops when
 /// it never gets to the game (#12179).
 pub fn play_step(step: &str) {
-    eprintln!("Horizon: Play: {step}…");
+    eprintln!("ShadowX: Play: {step}…");
 }
 
 /// The client's command, once the owner gate lets it start and its resources are prepared. Past
@@ -3076,7 +3085,7 @@ pub fn client(tag: &str) -> Result<Command, String> {
 }
 
 /// What the command line adds to a refusal to play for want of an account.
-pub const SIGN_IN_HINT: &str = "Sign in with `horizon-launcher account sign-in`.";
+pub const SIGN_IN_HINT: &str = "Sign in with `shadowx-launcher account sign-in`.";
 
 /// Start the game straight into a friend's world: `--server friend:CODE`.
 pub fn join_friend(cmd: &mut Command, code: &str) -> Result<(), String> {
@@ -3189,17 +3198,17 @@ impl Logged {
 
 // ----- Updates -----------------------------------------------------------------------------------
 
-/// What a check found: a Horizon build newer than every installed one, and a newer launcher.
+/// What a check found: a ShadowX build newer than every installed one, and a newer launcher.
 #[derive(Clone, Debug, Default, serde::Serialize)]
 pub struct Updates {
-    pub horizon: Option<Release>,
+    pub shadowx: Option<Release>,
     pub launcher: Option<Release>,
 }
 
-/// The newest Horizon build with a build here (the current Nightly), if it isn't installed and
+/// The newest ShadowX build with a build here (the current Nightly), if it isn't installed and
 /// no installed version is newer. Two Nightlies of one day compare equal: the one on GitHub is
 /// the update.
-pub fn horizon_update(releases: &[Release], installed: &[String]) -> Option<Release> {
+pub fn shadowx_update(releases: &[Release], installed: &[String]) -> Option<Release> {
     let newest = latest(releases)?;
     let newer = !installed.contains(&newest.tag)
         && installed
@@ -3222,19 +3231,28 @@ fn launcher_update_from(releases: &[Release], own: &str) -> Option<Release> {
         .cloned()
 }
 
-/// Load the game's release list and both update kinds from the same GitHub response.
-/// Publish the game releases before any fallback lookups for older launcher tags, so those
-/// lookups cannot hold up the release pages or opening animation. A list error reaches both.
+/// Load Horizon game releases and ShadowX launcher releases independently.
+/// Publish the game releases before querying the launcher repository, so a slow launcher lookup
+/// cannot hold up the Versions page or opening animation. A launcher lookup failure is non-fatal.
 pub fn releases_and_updates(
     on_releases: impl FnOnce(Result<Vec<Release>, String>),
 ) -> Result<Updates, String> {
-    releases_and_updates_with(release_list, installed, launcher_releases_in, on_releases)
+    releases_and_updates_with(
+        release_list,
+        installed,
+        || {
+            launcher_release_list()
+                .map(|list| launcher_releases_in(&list))
+                .unwrap_or_default()
+        },
+        on_releases,
+    )
 }
 
 fn releases_and_updates_with(
     load: impl FnOnce() -> Result<serde_json::Value, String>,
     installed: impl FnOnce() -> Vec<String>,
-    launchers: impl FnOnce(&serde_json::Value) -> Vec<Release>,
+    launchers: impl FnOnce() -> Vec<Release>,
     on_releases: impl FnOnce(Result<Vec<Release>, String>),
 ) -> Result<Updates, String> {
     let list = match load() {
@@ -3246,12 +3264,12 @@ fn releases_and_updates_with(
     };
     let releases = game_releases(&list);
     let installed_versions = installed();
-    let horizon = horizon_update(&installable_updates(&releases), &installed_versions)
+    let shadowx = shadowx_update(&installable_updates(&releases), &installed_versions)
         .or_else(|| architecture_update(&releases, &installed_versions));
     on_releases(Ok(releases));
     Ok(Updates {
-        horizon,
-        launcher: launcher_update(&launchers(&list)),
+        shadowx,
+        launcher: launcher_update(&launchers()),
     })
 }
 
@@ -3292,7 +3310,7 @@ pub fn install_tag(tag: &str, as_update: bool, progress: impl Fn(f32)) -> Result
             .ok_or("No release has a build for this platform yet.")?
     } else {
         release_selection::by_tag(&releases, tag)
-            .ok_or_else(|| format!("No Horizon release is tagged {tag}."))?
+            .ok_or_else(|| format!("No ShadowX release is tagged {tag}."))?
     };
     if release.asset.is_none() {
         return Err(format!("{} has no build for this platform.", release.tag));
@@ -3401,7 +3419,7 @@ pub fn self_update_allowed() -> bool {
     !cfg!(debug_assertions) && std::env::var_os("HORIZON_LAUNCHER_NO_SELF_UPDATE").is_none()
 }
 
-/// The version in `horizon-launcher --version`'s output (`horizon-launcher 0.1.5`).
+/// The version in `shadowx-launcher --version`'s output (`shadowx-launcher 0.1.5`).
 fn parse_version_output(out: &str) -> Option<&str> {
     out.trim()
         .strip_prefix(crate::identity::VERSION_PREFIX)
@@ -3518,8 +3536,8 @@ pub fn remove_replaced_binaries() {
     });
 }
 
-/// The app bundle the launcher runs from (`…/Horizon.app` for `…/Horizon.app/Contents/MacOS/
-/// horizon-launcher`), or None for a bare binary, as launchers before the .app shipped.
+/// The app bundle the launcher runs from (`…/ShadowX.app` for `…/ShadowX.app/Contents/MacOS/
+/// shadowx-launcher`), or None for a bare binary, as launchers before the .app shipped.
 pub fn app_bundle(exe: &Path) -> Option<&Path> {
     let macos = exe.parent()?;
     let contents = macos.parent()?;
@@ -3851,9 +3869,9 @@ fn fill_stage(
     }
     let unpacked = stage.join(UNPACKED);
     unpack(&archive, url, &unpacked)?;
-    // A launcher inside Horizon.app replaces the whole bundle (its Info.plist, icon and
+    // A launcher inside ShadowX.app replaces the whole bundle (its Info.plist, icon and
     // signature belong with the binary); a bare binary, as older launchers are, only the binary,
-    // which the macOS archive also holds (Horizon.app/Contents/MacOS/horizon-launcher).
+    // which the macOS archive also holds (ShadowX.app/Contents/MacOS/shadowx-launcher).
     if app_bundle(exe_path()).is_some() {
         if let Some(new) = find_app(&unpacked) {
             return staged(new);
@@ -4211,7 +4229,7 @@ pub struct Settings {
     /// Game asset architecture. Auto preserves the launcher's process-architecture behavior.
     #[serde(default)]
     pub game_architecture: GameArchitecture,
-    /// The instance Play starts (`instances`), by id. Unset means Horizon, the game's home.
+    /// The instance Play starts (`instances`), by id. Unset means ShadowX, the game's home.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub instance: Option<String>,
     pub minecraft_dir: Option<PathBuf>,
@@ -4264,7 +4282,7 @@ pub struct Settings {
     /// What the window does while the game runs. Stays by default.
     #[serde(default)]
     pub while_playing: WhilePlaying,
-    /// The accent colour on top of the appearance (`themes::Accent`). Horizon's violet by default.
+    /// The accent colour on top of the appearance (`themes::Accent`). ShadowX's violet by default.
     #[serde(default)]
     pub accent: crate::themes::Accent,
     /// How much white the glass look's plates take, in percent (the mockup's Glass, 0 to 16).
@@ -4276,7 +4294,7 @@ pub struct Settings {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub blur: Option<f32>,
     /// The launcher theme (`themes::theme`): its sky behind the light appearance. Unset is
-    /// Horizon's own.
+    /// ShadowX's own.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub theme: Option<String>,
     /// The cheaper scene for older computers (a lower-resolution sky, a box blur, the scene
@@ -4284,14 +4302,14 @@ pub struct Settings {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub performance: Option<bool>,
     /// Home's background: a picture the player picked, kept in the data folder under this name
-    /// (`themes::keep_background`). Unset shows Horizon's landscape.
+    /// (`themes::keep_background`). Unset shows ShadowX's landscape.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub background: Option<String>,
     /// The window's language. Unset follows the system's (`i18n::Language::system`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub language: Option<crate::i18n::Language>,
-    /// Whether what the browser installed from Horizon's registry updates by itself, at start
-    /// and before Play (`browser::horizon::auto`). Unset is on.
+    /// Whether what the browser installed from ShadowX's registry updates by itself, at start
+    /// and before Play (`browser::shadowx::auto`). Unset is on.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mods_auto_update: Option<bool>,
     /// First-use native code permission for this launcher install, Unix seconds.
@@ -4369,7 +4387,7 @@ impl Settings {
     pub fn language(&self) -> crate::i18n::Language {
         self.language.unwrap_or_else(crate::i18n::Language::system)
     }
-    /// Whether new Horizon versions are installed automatically.
+    /// Whether new ShadowX versions are installed automatically.
     pub fn auto_install(&self) -> bool {
         self.install_new_versions.unwrap_or(true)
     }
@@ -4841,7 +4859,7 @@ pub fn {f}("
                 if cfg!(horizon_fork_launcher) {
                     "horizon-fork-launcher-macos-arm64.zip"
                 } else {
-                    "horizon-launcher-macos-arm64.zip"
+                    "shadowx-launcher-macos-arm64.zip"
                 }
             ))
         );
@@ -4852,7 +4870,7 @@ pub fn {f}("
                 if cfg!(horizon_fork_launcher) {
                     "horizon-fork-launcher-macos-x64.zip"
                 } else {
-                    "horizon-launcher-macos-x64.zip"
+                    "shadowx-launcher-macos-x64.zip"
                 }
             ))
         );
@@ -4863,7 +4881,7 @@ pub fn {f}("
                 if cfg!(horizon_fork_launcher) {
                     "horizon-fork-launcher-windows-x64.zip"
                 } else {
-                    "horizon-launcher-windows-x64.zip"
+                    "shadowx-launcher-windows-x64.zip"
                 }
             ))
         );
@@ -4874,7 +4892,7 @@ pub fn {f}("
                 if cfg!(horizon_fork_launcher) {
                     "horizon-fork-launcher-windows-arm64.zip"
                 } else {
-                    "horizon-launcher-windows-arm64.zip"
+                    "shadowx-launcher-windows-arm64.zip"
                 }
             ))
         );
@@ -4913,7 +4931,7 @@ pub fn {f}("
             ["nightly-2026-11-12-aaaaaaa", "v0.2.81"]
         );
         for installed in [vec![], vec![SNAPSHOT.to_owned()]] {
-            let update = horizon_update(&releases, &installed).unwrap();
+            let update = shadowx_update(&releases, &installed).unwrap();
             assert_eq!(update.tag, "nightly-2026-11-12-aaaaaaa", "{installed:?}");
         }
         // A snapshot the developer selected stays selected when that Nightly installs as an
@@ -5200,12 +5218,12 @@ pub fn {f}("
             if cfg!(horizon_fork_launcher) {
                 "horizon-fork-launcher-windows-arm64.zip"
             } else {
-                "horizon-launcher-windows-arm64.zip"
+                "shadowx-launcher-windows-arm64.zip"
             },
             if cfg!(horizon_fork_launcher) {
                 "horizon-fork-launcher-windows-x64.zip"
             } else {
-                "horizon-launcher-windows-x64.zip"
+                "shadowx-launcher-windows-x64.zip"
             },
         );
         let asset = |name: &str| serde_json::json!({"name": name, "browser_download_url": format!("https://example.test/{name}"), "size": 1});
@@ -5222,25 +5240,23 @@ pub fn {f}("
 
     /// Every asset a launcher looks for is one the release workflows build, sign and publish.
     #[test]
-    fn game_platform_assets_are_published() {
-        let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
-        let read = |path: &str| fs::read_to_string(repo.join(path)).unwrap();
-        let build = read(".github/workflows/game-build.yml");
-        let nightly = read(".github/workflows/nightly-build.yml");
-        for (os, arch, game, _launcher_asset) in PLATFORMS {
+    fn horizon_game_assets_and_shadowx_launcher_assets_keep_distinct_names() {
+        for (_, _, game, launcher) in PLATFORMS {
             assert!(
-                build.contains(&format!("asset: {game}")),
-                "game-build.yml builds no {game}"
+                game.starts_with("horizon-"),
+                "game engine asset lost Horizon identity: {game}"
             );
-            // Signed (SHA256SUMS), then published. Windows ARM64's and, for a snapshot, Intel
-            // macOS's build may fail without holding the release, so both steps name them again.
-            let named = nightly.matches(&format!("dist/{game}")).count();
-            let optional = matches!((os, arch), ("windows", "aarch64") | ("macos", "x86_64"));
-            assert!(
-                named == 2 || (optional && named > 2),
-                "nightly-build.yml must sign and publish {game} ({os} {arch})"
-            );
+            if cfg!(horizon_fork_launcher) {
+                assert!(launcher.starts_with("horizon-fork-launcher-"), "{launcher}");
+            } else {
+                assert!(launcher.starts_with("shadowx-launcher-"), "{launcher}");
+            }
         }
+        let workflow =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../.github/workflows/release.yml");
+        let workflow = fs::read_to_string(workflow).unwrap();
+        assert!(workflow.contains("output: shadowx-launcher"));
+        assert!(workflow.contains("output: shadowx-launcher.exe"));
     }
 
     #[test]
@@ -5255,25 +5271,25 @@ pub fn {f}("
             .and_then(|(_, v)| v);
         assert!(props.is_some_and(|v| {
             v.to_string_lossy()
-                .contains("application.name = \"Horizon\"")
+                .contains("application.name = \"ShadowX\"")
         }));
     }
 
     #[test]
     fn a_crash_after_the_vulkan_adapter_line_and_before_the_first_frame_is_a_start_crash() {
         let start = [
-            "Horizon: resources loaded in 11.3s; 35723 block states, 1658 items, 67 biomes",
-            "Horizon renderer: Intel(R) HD Graphics 530 (Vulkan, IntegratedGpu)",
+            "ShadowX: resources loaded in 11.3s; 35723 block states, 1658 items, 67 biomes",
+            "ShadowX renderer: Intel(R) HD Graphics 530 (Vulkan, IntegratedGpu)",
         ];
         assert!(vulkan_start_crashed(start));
         // A step line after the adapter keeps it a start crash.
-        let step = [start[1], "Horizon renderer: creating the pipelines"];
+        let step = [start[1], "ShadowX renderer: creating the pipelines"];
         assert!(vulkan_start_crashed(step));
         // A crash after the first frame is the game's, not the renderer start's.
-        let later = [start[1], "Horizon: first frame after 812 ms"];
+        let later = [start[1], "ShadowX: first frame after 812 ms"];
         assert!(!vulkan_start_crashed(later));
         // Already on DirectX 12, or no renderer yet: nothing to switch.
-        let dx12 = ["Horizon renderer: Intel(R) HD Graphics 530 (Dx12, IntegratedGpu)"];
+        let dx12 = ["ShadowX renderer: Intel(R) HD Graphics 530 (Dx12, IntegratedGpu)"];
         assert!(!vulkan_start_crashed(dx12));
         assert!(!vulkan_start_crashed(&start[..1]));
         // Vulkan failed to open and DirectX 12 took over: its line is the last adapter.
@@ -5382,8 +5398,8 @@ pub fn {f}("
         assert_eq!(launcher_version("v2026.10.13"), None);
         assert_eq!(launcher_version("launcher-vx"), None);
         let list = serde_json::json!([
-            {"tag_name": "v2026.10.12", "assets": [{"name": "horizon-linux-x86_64.tar.gz", "browser_download_url": "u", "size": 1}]},
-            {"tag_name": "launcher-v9.0.0", "assets": [{"name": if cfg!(horizon_fork_launcher) { "horizon-fork-launcher-linux-x86_64.tar.gz" } else { "horizon-launcher-linux-x86_64.tar.gz" }, "browser_download_url": "u", "size": 1}]},
+            {"tag_name": "v2026.10.12", "assets": [{"name": "shadowx-linux-x86_64.tar.gz", "browser_download_url": "u", "size": 1}]},
+            {"tag_name": "launcher-v9.0.0", "assets": [{"name": if cfg!(horizon_fork_launcher) { "horizon-fork-launcher-linux-x86_64.tar.gz" } else { "shadowx-launcher-linux-x86_64.tar.gz" }, "browser_download_url": "u", "size": 1}]},
             {"tag_name": "v2026.10.13", "assets": []},
             {"tag_name": "launcher-v0.0.1", "draft": true, "assets": []},
         ]);
@@ -5417,7 +5433,7 @@ pub fn {f}("
         );
         let offered = |installed: &[&str]| {
             let installed: Vec<String> = installed.iter().map(|t| t.to_string()).collect();
-            horizon_update(&releases, &installed).map(|r| r.tag)
+            shadowx_update(&releases, &installed).map(|r| r.tag)
         };
         assert_eq!(offered(&["v2026.10.14"]), Some("v2026.10.15".into()));
         assert_eq!(offered(&[]), Some("v2026.10.15".into()));
@@ -5443,7 +5459,7 @@ pub fn {f}("
         );
         let offered = |releases: &[Release], installed: &[&str]| {
             let installed: Vec<String> = installed.iter().map(|t| t.to_string()).collect();
-            horizon_update(&installable_updates(releases), &installed).map(|r| r.tag)
+            shadowx_update(&installable_updates(releases), &installed).map(|r| r.tag)
         };
         assert_eq!(offered(&releases, &[]), Some("v0.2.13".into()));
         assert_eq!(offered(&releases, &["v0.2.0"]), Some("v0.2.13".into()));
@@ -5731,7 +5747,7 @@ pub fn {f}("
             Some(if cfg!(horizon_fork_launcher) {
                 "horizon-fork-launcher-linux-x86_64.AppImage"
             } else {
-                "horizon-launcher-linux-x86_64.AppImage"
+                "shadowx-launcher-linux-x86_64.AppImage"
             })
         );
     }
@@ -5745,7 +5761,7 @@ pub fn {f}("
         let inside = |dir: &str| in_temp_folder(Path::new(dir), temp);
         assert!(inside("/tmp/t"));
         assert!(inside(
-            "/tmp/t/Temp12_horizon-launcher-windows-x64.zip/inner"
+            "/tmp/t/Temp12_shadowx-launcher-windows-x64.zip/inner"
         ));
         assert!(inside("/tmp/t/7zO8A1B2C3D"));
         assert!(!inside("/tmp/tools"));
@@ -5837,8 +5853,8 @@ pub fn {f}("
         fs::write(theirs.join("download.zip"), b"their download").unwrap();
         fs::write(mine.join("download.zip"), b"mine").unwrap();
 
-        remove_stage(&work, &work.join("unpacked").join("horizon-launcher"));
-        remove_stage(&work, &mine.join("..").join("horizon-launcher"));
+        remove_stage(&work, &work.join("unpacked").join("shadowx-launcher"));
+        remove_stage(&work, &mine.join("..").join("shadowx-launcher"));
         remove_stage(&work, &work);
         assert!(mine.exists() && theirs.exists());
 
@@ -5919,30 +5935,30 @@ pub fn {f}("
     #[test]
     fn only_an_appimage_file_counts() {
         use std::ffi::OsStr;
-        let mount = OsStr::new("/tmp/.mount_Horizon123");
-        let exe = Path::new("/tmp/.mount_Horizon123/usr/bin/horizon-launcher");
+        let mount = OsStr::new("/tmp/.mount_ShadowX123");
+        let exe = Path::new("/tmp/.mount_ShadowX123/usr/bin/shadowx-launcher");
         assert_eq!(appimage_path_in(None, Some(mount), exe), None);
         assert_eq!(
-            appimage_path_in(Some(OsStr::new("Horizon.AppImage")), Some(mount), exe),
+            appimage_path_in(Some(OsStr::new("ShadowX.AppImage")), Some(mount), exe),
             None,
             "a relative path is no $APPIMAGE"
         );
         assert_eq!(
             appimage_path_in(
-                Some(OsStr::new("/nonexistent/Horizon.AppImage")),
+                Some(OsStr::new("/nonexistent/ShadowX.AppImage")),
                 Some(mount),
                 exe
             ),
             None
         );
-        let file = std::env::temp_dir().join(format!("horizon-appimage-{}", std::process::id()));
+        let file = std::env::temp_dir().join(format!("shadowx-appimage-{}", std::process::id()));
         std::fs::write(&file, b"#!AppImage").unwrap();
         assert_eq!(
             appimage_path_in(Some(file.as_os_str()), Some(mount), exe),
             Some(file.clone())
         );
         // Inherited from another AppImage: this launcher is installed elsewhere.
-        let elsewhere = Path::new("/home/a/.local/bin/horizon-launcher");
+        let elsewhere = Path::new("/home/a/.local/bin/shadowx-launcher");
         assert_eq!(
             appimage_path_in(Some(file.as_os_str()), Some(mount), elsewhere),
             None
@@ -5985,7 +6001,7 @@ pub fn {f}("
         let installed = ["v2026.10.19.15".to_string(), "v2026.10.12".to_string()];
         // A pre-release 0.2.0 is not an update; once published as the release, it is one.
         let offered = |releases: &[Release]| {
-            horizon_update(&installable_updates(releases), &installed).map(|r| r.tag)
+            shadowx_update(&installable_updates(releases), &installed).map(|r| r.tag)
         };
         assert_eq!(offered(&releases), None);
         let mut released = releases.clone();
@@ -6090,10 +6106,10 @@ pub fn {f}("
         };
         let releases = [r("v2026.10.13"), r("v2026.10.12")];
         assert_eq!(
-            horizon_update(&releases, &["v2026.10.12".into()]).map(|r| r.tag),
+            shadowx_update(&releases, &["v2026.10.12".into()]).map(|r| r.tag),
             Some("v2026.10.13".into())
         );
-        assert!(horizon_update(&releases, &["v2026.10.13".into()]).is_none());
+        assert!(shadowx_update(&releases, &["v2026.10.13".into()]).is_none());
         assert!(launcher_update(&[r("launcher-v0.0.1")]).is_none());
         assert!(launcher_update(&[r("launcher@99.0.0")]).is_some());
         assert!(launcher_update_from(&[r("launcher-v99.0.0")], "launcher-v0.16.0").is_some());
@@ -6109,7 +6125,7 @@ pub fn {f}("
         ));
     }
 
-    /// The Nightly is the only build Horizon ships (docs/release-flow.md): every launcher takes the
+    /// The Nightly is the only build ShadowX ships (docs/release-flow.md): every launcher takes the
     /// current one as its update, over every release; the last week's are listed, never offered.
     #[test]
     fn every_launcher_updates_to_the_current_nightly() {
@@ -6149,7 +6165,7 @@ pub fn {f}("
         );
         let offered = |installed: &[&str]| {
             let installed: Vec<String> = installed.iter().map(|t| t.to_string()).collect();
-            horizon_update(&installable_updates(&releases), &installed).map(|r| r.tag)
+            shadowx_update(&installable_updates(&releases), &installed).map(|r| r.tag)
         };
         let current = Some("nightly-2026-10-28-9b772b2".to_string());
         // A player of the release channel, a new player, one on an older Nightly of the same day.
@@ -6253,7 +6269,7 @@ pub fn {f}("
     fn a_drawn_page_asks_the_disk_once_and_the_launch_check_asks_again() {
         use std::time::{Duration, Instant};
         let dir =
-            std::env::temp_dir().join(format!("horizon-launcher-cached-{}", std::process::id()));
+            std::env::temp_dir().join(format!("shadowx-launcher-cached-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         fs::write(dir.join(RESOURCES_MANIFEST), "{}").unwrap();
@@ -6322,7 +6338,7 @@ pub fn {f}("
     #[test]
     fn a_prepared_folder_with_an_empty_table_is_not_prepared() {
         let dir =
-            std::env::temp_dir().join(format!("horizon-launcher-empty-{}", std::process::id()));
+            std::env::temp_dir().join(format!("shadowx-launcher-empty-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         assert!(!prepared_at(&dir), "no manifest is not prepared");
@@ -6347,7 +6363,7 @@ pub fn {f}("
     fn a_prepared_version_gets_a_data_file_that_holds_its_files() {
         use horizon_platform::prepared_files::FILE_NAME;
         let resources =
-            std::env::temp_dir().join(format!("horizon-launcher-data-file-{}", std::process::id()));
+            std::env::temp_dir().join(format!("shadowx-launcher-data-file-{}", std::process::id()));
         let _ = fs::remove_dir_all(&resources);
         let recipe = resources.join("data/minecraft/recipe/stick.json");
         fs::create_dir_all(recipe.parent().unwrap()).unwrap();
@@ -6373,7 +6389,7 @@ pub fn {f}("
     #[test]
     fn a_new_version_reuses_resources_prepared_by_a_compatible_one() {
         let versions =
-            std::env::temp_dir().join(format!("horizon-launcher-test-{}", std::process::id()));
+            std::env::temp_dir().join(format!("shadowx-launcher-test-{}", std::process::id()));
         let _ = fs::remove_dir_all(&versions);
         let oracle = "mods/horizon/src/test/java/dev/horizonlab/parity/VanillaHeightmapOracle.java";
         let camera = "mods/horizon/src/test/java/dev/horizonlab/parity/VanillaCameraOracle.java";
@@ -6489,7 +6505,7 @@ pub fn {f}("
     #[test]
     fn prepared_resources_follow_the_preparers_output_version() {
         let versions = std::env::temp_dir().join(format!(
-            "horizon-launcher-output-test-{}",
+            "shadowx-launcher-output-test-{}",
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&versions);
@@ -6585,7 +6601,7 @@ pub fn {f}("
     #[test]
     fn prepared_versions_get_the_run_time_reports_without_preparing_again() {
         let versions = std::env::temp_dir().join(format!(
-            "horizon-launcher-reports-test-{}",
+            "shadowx-launcher-reports-test-{}",
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&versions);
@@ -6644,7 +6660,7 @@ pub fn {f}("
     #[test]
     fn prepared_versions_get_what_the_asset_store_adds_without_preparing_again() {
         let dir = std::env::temp_dir().join(format!(
-            "horizon-launcher-packs-test-{}",
+            "shadowx-launcher-packs-test-{}",
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&dir);
@@ -6817,20 +6833,20 @@ pub fn {f}("
 
     #[test]
     fn finds_the_app_bundle_around_the_binary() {
-        let exe = Path::new("/Applications/Horizon.app/Contents/MacOS/horizon-launcher");
+        let exe = Path::new("/Applications/ShadowX.app/Contents/MacOS/shadowx-launcher");
         assert_eq!(
             app_bundle(exe),
-            Some(Path::new("/Applications/Horizon.app"))
+            Some(Path::new("/Applications/ShadowX.app"))
         );
-        assert_eq!(app_bundle(Path::new("/Users/me/horizon-launcher")), None);
+        assert_eq!(app_bundle(Path::new("/Users/me/shadowx-launcher")), None);
         assert_eq!(
-            app_bundle(Path::new("/x/Contents/MacOS/horizon-launcher")),
+            app_bundle(Path::new("/x/Contents/MacOS/shadowx-launcher")),
             None
         );
-        let work = std::env::temp_dir().join(format!("horizon-find-app-{}", std::process::id()));
+        let work = std::env::temp_dir().join(format!("shadowx-find-app-{}", std::process::id()));
         let _ = fs::remove_dir_all(&work);
-        fs::create_dir_all(work.join("dist/Horizon.app/Contents/MacOS")).unwrap();
-        assert_eq!(find_app(&work), Some(work.join("dist/Horizon.app")));
+        fs::create_dir_all(work.join("dist/ShadowX.app/Contents/MacOS")).unwrap();
+        assert_eq!(find_app(&work), Some(work.join("dist/ShadowX.app")));
         let _ = fs::remove_dir_all(&work);
     }
 
@@ -6840,10 +6856,10 @@ pub fn {f}("
     #[test]
     fn an_app_bundle_updates_in_place() {
         use std::os::unix::fs::PermissionsExt;
-        let work = std::env::temp_dir().join(format!("horizon-bundle-{}", std::process::id()));
+        let work = std::env::temp_dir().join(format!("shadowx-bundle-{}", std::process::id()));
         let _ = fs::remove_dir_all(&work);
         let make = |dir: &Path, version: &str| {
-            let app = dir.join("Horizon.app");
+            let app = dir.join("ShadowX.app");
             fs::create_dir_all(app.join("Contents/MacOS")).unwrap();
             fs::create_dir_all(app.join("Contents/Resources")).unwrap();
             let bin = app.join("Contents/MacOS").join(crate::identity::EXECUTABLE);
@@ -6853,10 +6869,10 @@ pub fn {f}("
             fs::write(
                 app.join("Contents/Info.plist"),
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<plist version=\"1.0\"><dict>\
-                 <key>CFBundleExecutable</key><string>horizon-launcher</string>\
-                 <key>CFBundleIdentifier</key><string>dev.horizon.test</string>\
+                 <key>CFBundleExecutable</key><string>shadowx-launcher</string>\
+                 <key>CFBundleIdentifier</key><string>dev.shadowx.test</string>\
                  <key>CFBundlePackageType</key><string>APPL</string></dict></plist>\n"
-                    .replace("horizon-launcher", crate::identity::EXECUTABLE),
+                    .replace("shadowx-launcher", crate::identity::EXECUTABLE),
             )
             .unwrap();
             let signed = Command::new("codesign")
@@ -6902,7 +6918,7 @@ pub fn {f}("
             .collect();
         assert_eq!(
             left,
-            ["Horizon.app"],
+            ["ShadowX.app"],
             "nothing staged or moved aside is left"
         );
 
@@ -6923,7 +6939,7 @@ pub fn {f}("
             parse_version_output(if cfg!(horizon_fork_launcher) {
                 "horizon-fork-launcher 0.1.5\n"
             } else {
-                "horizon-launcher 0.1.5\n"
+                "shadowx-launcher 0.1.5\n"
             }),
             Some("0.1.5")
         );
@@ -6935,7 +6951,7 @@ pub fn {f}("
             None
         );
         assert_eq!(
-            installed_launcher_version(Path::new("/nonexistent/horizon-launcher")),
+            installed_launcher_version(Path::new("/nonexistent/shadowx-launcher")),
             None
         );
     }
@@ -6947,10 +6963,10 @@ pub fn {f}("
     fn a_replaced_binary_is_replaced_again_at_its_path() {
         use std::os::unix::fs::PermissionsExt;
         let dir =
-            std::env::temp_dir().join(format!("horizon-launcher-replace-{}", std::process::id()));
+            std::env::temp_dir().join(format!("shadowx-launcher-replace-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
-        let exe = dir.join("horizon-launcher");
+        let exe = dir.join("shadowx-launcher");
         fs::write(&exe, "old").unwrap();
         // Another update swaps the file under the running launcher.
         fs::write(dir.join("other"), "other update").unwrap();
@@ -6978,7 +6994,7 @@ pub fn {f}("
             .map(|e| e.file_name().to_string_lossy().into_owned())
             .collect();
         names.sort();
-        assert_eq!(names, ["horizon-launcher", "new"]);
+        assert_eq!(names, ["new", "shadowx-launcher"]);
         let _ = fs::remove_dir_all(&dir);
     }
 
@@ -7083,12 +7099,12 @@ pub fn {f}("
     #[test]
     fn crash_reports_are_found_and_summarised() {
         let dir =
-            std::env::temp_dir().join(format!("horizon-launcher-crash-{}", std::process::id()));
+            std::env::temp_dir().join(format!("shadowx-launcher-crash-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         let start = std::time::SystemTime::now() - std::time::Duration::from_secs(2);
         assert!(crash_report_in_since(&dir, start).is_none());
         fs::create_dir_all(&dir).unwrap();
-        let report = "---- Horizon Crash Report ----\n// Details below.\n\nTime: 2026-10-14 09:05:07\nDescription: Unexpected error\n\npanicked at src/game.rs:10:5:\nboom\n\t0: horizon_client::game::frame\n";
+        let report = "---- ShadowX Crash Report ----\n// Details below.\n\nTime: 2026-10-14 09:05:07\nDescription: Unexpected error\n\npanicked at src/game.rs:10:5:\nboom\n\t0: shadowx_client::game::frame\n";
         fs::write(dir.join("crash-2026-10-14_09.05.07-client.txt"), report).unwrap();
         fs::write(dir.join("notes.txt"), "x").unwrap();
         assert_eq!(

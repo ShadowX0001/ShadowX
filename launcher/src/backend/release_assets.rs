@@ -1,4 +1,4 @@
-/// The release assets of each system Horizon ships for: (OS, architecture, the game, the launcher).
+/// The release assets of each system ShadowX ships for: (OS, architecture, the game, the launcher).
 /// game-build.yml builds the game's, nightly-build.yml signs and publishes them, and launcher.yml
 /// builds the launcher's (`platform_assets_are_published`).
 pub const PLATFORMS: [(&str, &str, &str, &str); 5] = [
@@ -9,7 +9,7 @@ pub const PLATFORMS: [(&str, &str, &str, &str); 5] = [
         if cfg!(horizon_fork_launcher) {
             "horizon-fork-launcher-linux-x86_64.tar.gz"
         } else {
-            "horizon-launcher-linux-x86_64.tar.gz"
+            "shadowx-launcher-linux-x86_64.tar.gz"
         },
     ),
     (
@@ -19,7 +19,7 @@ pub const PLATFORMS: [(&str, &str, &str, &str); 5] = [
         if cfg!(horizon_fork_launcher) {
             "horizon-fork-launcher-macos-arm64.zip"
         } else {
-            "horizon-launcher-macos-arm64.zip"
+            "shadowx-launcher-macos-arm64.zip"
         },
     ),
     // Intel Macs (#1161).
@@ -30,7 +30,7 @@ pub const PLATFORMS: [(&str, &str, &str, &str); 5] = [
         if cfg!(horizon_fork_launcher) {
             "horizon-fork-launcher-macos-x64.zip"
         } else {
-            "horizon-launcher-macos-x64.zip"
+            "shadowx-launcher-macos-x64.zip"
         },
     ),
     (
@@ -40,7 +40,7 @@ pub const PLATFORMS: [(&str, &str, &str, &str); 5] = [
         if cfg!(horizon_fork_launcher) {
             "horizon-fork-launcher-windows-x64.zip"
         } else {
-            "horizon-launcher-windows-x64.zip"
+            "shadowx-launcher-windows-x64.zip"
         },
     ),
     (
@@ -50,7 +50,7 @@ pub const PLATFORMS: [(&str, &str, &str, &str); 5] = [
         if cfg!(horizon_fork_launcher) {
             "horizon-fork-launcher-windows-arm64.zip"
         } else {
-            "horizon-launcher-windows-arm64.zip"
+            "shadowx-launcher-windows-arm64.zip"
         },
     ),
 ];

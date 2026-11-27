@@ -10,7 +10,7 @@
 //! Minecraft: Java Edition, as other launchers do, and the game plays as the selected account.
 //! The game binary itself, its harnesses and the servers don't go through the launcher's gate.
 //!
-//! The Azure app (client ID) is Horizon's own and is configuration: `HORIZON_MSA_CLIENT_ID` at
+//! The Azure app (client ID) is ShadowX's own and is configuration: `HORIZON_MSA_CLIENT_ID` at
 //! build time, or at run time to override it. Without one, sign-in says it is not configured.
 pub mod session;
 
@@ -750,7 +750,7 @@ impl Bounded {
         use std::sync::atomic::Ordering::SeqCst;
         let no_answer = || {
             let said = keyring_no_answer(self.wait);
-            eprintln!("Horizon: {said}");
+            eprintln!("ShadowX: {said}");
             Err(said)
         };
         if self.stuck.load(SeqCst) > 0 {
@@ -1180,7 +1180,7 @@ impl SecretStore for SystemStore {
             let attributes = vec![("service", SERVICE), ("account", key)];
             keyring
                 .create_item(
-                    "Horizon launcher: Minecraft account",
+                    "ShadowX Launcher: Minecraft account",
                     &attributes,
                     secret.as_bytes(),
                     true,
@@ -1380,7 +1380,7 @@ fn set_item(items: &dyn Items, key: &str, secret: &str) -> Result<(), String> {
 /// the player's credential store is full (an undocumented limit of its total size). The Xbox app
 /// and the Minecraft Launcher are known to leave hundreds of items there (#4313, #4366).
 #[cfg(any(target_os = "windows", test))]
-pub const CREDENTIAL_MANAGER_FULL: &str = "Windows Credential Manager is full, so Horizon can't \
+pub const CREDENTIAL_MANAGER_FULL: &str = "Windows Credential Manager is full, so ShadowX can't \
      keep your sign-in (Windows error 8; it isn't your computer's memory). Open Credential Manager \
      from the Start menu, go to Windows Credentials and remove entries you no longer use, then sign \
      in again. The Xbox app and the Minecraft Launcher often leave many XblGrts and Xbl| entries \
@@ -1991,7 +1991,7 @@ pub fn launch(
                     "Can't read {name}'s sign-in: {why}",
                     &[("name", &account.name), ("why", &why)],
                 );
-                eprintln!("Horizon: {said}");
+                eprintln!("ShadowX: {said}");
                 if plays {
                     pass.offline = Some(said.clone());
                 }
@@ -2331,7 +2331,7 @@ pub fn session_for_game(game_home: &Path) -> Result<GameSession, NoOwner> {
         pass.session.as_ref().map(|(a, _)| a.uuid.as_str()),
     );
     if let Err(e) = accounts.save_renewed() {
-        eprintln!("Horizon: the accounts are not saved: {e}");
+        eprintln!("ShadowX: the accounts are not saved: {e}");
     }
     Ok(session_file(game_home, pass, env))
 }
@@ -2350,7 +2350,7 @@ pub fn session_for_game_as(game_home: &Path, who: &str) -> Result<GameSession, S
         who,
     );
     if let Err(e) = accounts.save_renewed() {
-        eprintln!("Horizon: the accounts are not saved: {e}");
+        eprintln!("ShadowX: the accounts are not saved: {e}");
     }
     let pass = pass?;
     let env = split_sessions(
@@ -2359,7 +2359,7 @@ pub fn session_for_game_as(game_home: &Path, who: &str) -> Result<GameSession, S
         pass.session.as_ref().map(|(a, _)| a.uuid.as_str()),
     );
     if let Err(e) = accounts.save_renewed() {
-        eprintln!("Horizon: the accounts are not saved: {e}");
+        eprintln!("ShadowX: the accounts are not saved: {e}");
     }
     Ok(session_file(game_home, pass, env))
 }
@@ -2550,7 +2550,7 @@ pub fn java_player() -> Result<crate::java_launch::Player, String> {
         &mut accounts,
     );
     if let Err(e) = accounts.save_renewed() {
-        eprintln!("Horizon: the accounts are not saved: {e}");
+        eprintln!("ShadowX: the accounts are not saved: {e}");
     }
     player
 }

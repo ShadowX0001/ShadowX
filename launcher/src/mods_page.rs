@@ -32,7 +32,7 @@ const CHECKING: usize = 2;
 /// The sources to pick from on the tabs that have both ([`switches`]); CurseForge is shown
 /// beside them as coming soon.
 pub(super) const SOURCES: [(SourceId, &str); 2] = [
-    (SourceId::Horizon, "Horizon"),
+    (SourceId::ShadowX, "Horizon"),
     (SourceId::Modrinth, "Modrinth"),
 ];
 const PAGE: usize = 20;
@@ -252,7 +252,7 @@ impl Mods {
     pub(super) fn checking(&self, p: &Project) -> bool {
         self.java_for(p.kind).is_none()
             && p.kind == PackKind::Mod
-            && p.source != SourceId::Horizon
+            && p.source != SourceId::ShadowX
             && matches!(
                 self.checks.get(&(p.source, p.id.clone())),
                 None | Some(Checking::Running)
@@ -267,7 +267,7 @@ impl Mods {
             return Support::Works;
         }
         let metadata = p.support();
-        if p.kind != PackKind::Mod || p.source == SourceId::Horizon || !metadata.installable() {
+        if p.kind != PackKind::Mod || p.source == SourceId::ShadowX || !metadata.installable() {
             return metadata;
         }
         match self.checks.get(&(p.source, p.id.clone())) {
@@ -535,7 +535,7 @@ impl Launcher {
                 .ok_or_else(|| trf("{source} isn't set up.", &[("source", source.label())]))
                 .and_then(|s| s.search(&query));
             let about: HashMap<String, Vec<String>> = match (&result, source) {
-                (Ok(found), SourceId::Horizon) => {
+                (Ok(found), SourceId::ShadowX) => {
                     let instance = horizon_launcher::instances::selected();
                     found
                         .iter()
@@ -561,7 +561,7 @@ impl Launcher {
             .mods
             .installed
             .iter()
-            .any(|e| e.source == SourceId::Horizon)
+            .any(|e| e.source == SourceId::ShadowX)
         {
             return;
         }
@@ -655,7 +655,7 @@ impl Launcher {
         }
         let todo: Vec<Project> = found
             .into_iter()
-            .filter(|p| p.kind == PackKind::Mod && p.source != SourceId::Horizon)
+            .filter(|p| p.kind == PackKind::Mod && p.source != SourceId::ShadowX)
             .filter(|p| p.support().installable())
             .filter(|p| !m.checks.contains_key(&(p.source, p.id.clone())))
             .collect();
@@ -805,7 +805,7 @@ impl Launcher {
             return;
         }
         // The first native mod: the trust notice, before anything is installed.
-        let first_native = source == SourceId::Horizon
+        let first_native = source == SourceId::ShadowX
             && self.settings.native_mods_allowed_at.is_none()
             && horizon::is_native_mod(&id);
         if first_native {
@@ -881,7 +881,7 @@ impl Launcher {
                         ));
                     }
                     modpack = p.kind == PackKind::Modpack;
-                    if modpack && p.source == SourceId::Horizon {
+                    if modpack && p.source == SourceId::ShadowX {
                         let pack = horizon::pack::install(&p.id, &progress)?;
                         if let Some(url) = &p.icon {
                             horizon_launcher::instances::adopt_icon(
@@ -930,7 +930,7 @@ impl Launcher {
                             &[("mods", &mods), ("instance", &instance)],
                         ));
                     }
-                    if p.source == SourceId::Horizon && p.kind == PackKind::Mod {
+                    if p.source == SourceId::ShadowX && p.kind == PackKind::Mod {
                         return Ok(trf(
                             "Installed {mods} into horizon-mods and turned it on, checksum \
                              checked (Options > Mods in the game).",
@@ -1135,7 +1135,7 @@ impl Launcher {
             ..Query::new(text, PackKind::Mod)
         };
         std::thread::spawn(move || {
-            let found = browser::source(SourceId::Horizon)
+            let found = browser::source(SourceId::ShadowX)
                 .ok_or_else(|| "not set up".to_string())
                 .and_then(|s| s.search(&query))
                 .unwrap_or_default();
@@ -1202,7 +1202,7 @@ impl Launcher {
             .then(|| div().flex().child(self.mods_source_switch(cx)));
         // The registry lists only what was made for Horizon: no "everything", and of the filters
         // only its categories.
-        let registry = self.mods.source == SourceId::Horizon && !java;
+        let registry = self.mods.source == SourceId::ShadowX && !java;
         let filters = self.mods_filters(cx);
         // The registry's sort sits below the GitHub row, above the list it orders.
         let registry_sort = registry.then(|| self.mods_sort_bar(cx));
@@ -1450,7 +1450,7 @@ impl Launcher {
                 .mods
                 .chosen
                 .get(&e.project)
-                .filter(|_| e.source == SourceId::Horizon)
+                .filter(|_| e.source == SourceId::ShadowX)
             {
                 let mut recommended = button(
                     SharedString::from(format!("mods-recommended-{}", e.project)),
@@ -1464,7 +1464,7 @@ impl Launcher {
                     let id = e.project.clone();
                     recommended =
                         recommended.on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
-                            this.mods_install(SourceId::Horizon, id.clone(), None);
+                            this.mods_install(SourceId::ShadowX, id.clone(), None);
                             cx.notify();
                         }));
                 }
@@ -1494,7 +1494,7 @@ impl Launcher {
             let on = match &self.mods.java {
                 _ if e.kind != PackKind::Mod => None,
                 Some(_) => Some(java_instance::is_on(&self.mods.home(), e)),
-                None if e.source == SourceId::Horizon => Some(
+                None if e.source == SourceId::ShadowX => Some(
                     horizon::mod_id(e).is_some_and(|id| java::is_enabled(&self.mods.home(), id)),
                 ),
                 None => None,
@@ -1678,7 +1678,7 @@ impl Launcher {
                     ),
                     &t,
                 );
-            } else if m.source == SourceId::Horizon {
+            } else if m.source == SourceId::ShadowX {
                 tr("Nothing in Horizon's registry matches yet.")
             } else if m.everything {
                 tr("Nothing found.")
@@ -1766,7 +1766,7 @@ impl Launcher {
                 .child(div().truncate().child(p.summary.clone()))
                 .child(by.join(" · "))
                 .children(
-                    (p.source == SourceId::Horizon)
+                    (p.source == SourceId::ShadowX)
                         .then(|| stars(&p.id, &t))
                         .flatten(),
                 )
@@ -1778,7 +1778,7 @@ impl Launcher {
                 .children(
                     m.about
                         .get(&p.id)
-                        .filter(|_| p.source == SourceId::Horizon)
+                        .filter(|_| p.source == SourceId::ShadowX)
                         .map(|lines| div().text_color(t.ink_soft).child(lines.join(" · "))),
                 );
             let open = p.clone();
@@ -1851,7 +1851,7 @@ pub(super) fn auto_update(targets: &[AutoTarget], enabled: bool) -> Vec<String> 
 /// the rest.
 fn source_for(kind: PackKind) -> SourceId {
     match kind {
-        PackKind::Mod | PackKind::Shader => SourceId::Horizon,
+        PackKind::Mod | PackKind::Shader => SourceId::ShadowX,
         PackKind::ResourcePack | PackKind::Modpack | PackKind::DataPack => SourceId::Modrinth,
     }
 }

@@ -1,0 +1,85 @@
+name: ShadowX CI
+
+on:
+  push:
+    branches:
+      - main
+      - shadowx-dev
+  pull_request:
+    branches:
+      - main
+      - shadowx-dev
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: shadowx-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  launcher-check:
+    name: Launcher format, all-target check and tests (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake clang pkg-config libssl-dev \
+            libasound2-dev libudev-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev \
+            libx11-dev libx11-xcb-dev libxcb-render0-dev libxcb-shape0-dev \
+            libxcb-xfixes0-dev libxrandr-dev libxi-dev libxcursor-dev \
+            libxinerama-dev libvulkan-dev libgl1-mesa-dev \
+            libfontconfig1-dev libfreetype6-dev
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            launcher -> target
+
+      - name: Verify Rust formatting
+        run: cargo fmt --manifest-path launcher/Cargo.toml --package horizon-launcher -- --check
+
+      - name: Check all launcher targets
+        run: cargo check --manifest-path launcher/Cargo.toml --all-targets --locked
+
+      - name: Regenerate launcher command reference for verification
+        run: HORIZON_WRITE_DOCS=1 cargo test --manifest-path launcher/Cargo.toml the_launcher_reference
+
+      - name: Commit regenerated launcher command reference
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/launcher-commands.md
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: regenerate ShadowX launcher command reference"
+            TARGET_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+            git push origin "HEAD:refs/heads/${TARGET_BRANCH}"
+          fi
+
+      - name: Upload generated launcher command reference
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-launcher-command-reference
+          path: docs/launcher-commands.md
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Run launcher tests
+        run: cargo test --manifest-path launcher/Cargo.toml --locked
+
+      - name: Build optimized launcher
+        run: cargo build --manifest-path launcher/Cargo.toml --release --locked

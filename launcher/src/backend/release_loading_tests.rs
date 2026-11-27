@@ -33,7 +33,7 @@ fn baseline(load: impl Fn() -> Result<serde_json::Value, String>) -> (Vec<Releas
     let releases = parse_releases(&load().unwrap(), ASSET, is_game_tag);
     let list = load().unwrap();
     let updates = Updates {
-        horizon: horizon_update(
+        shadowx: shadowx_update(
             &parse_releases(&list, ASSET, is_game_tag),
             &installed_fixture(),
         ),
@@ -42,12 +42,12 @@ fn baseline(load: impl Fn() -> Result<serde_json::Value, String>) -> (Vec<Releas
     (releases, updates)
 }
 
-fn shared(load: impl FnOnce() -> Result<serde_json::Value, String>) -> (Vec<Release>, Updates) {
+fn shared(load: impl Fn() -> Result<serde_json::Value, String>) -> (Vec<Release>, Updates) {
     let mut releases = None;
     let updates = releases_and_updates_with(
-        load,
+        || load(),
         installed_fixture,
-        |list| parse_releases(list, LAUNCHER_ASSET, is_launcher_tag),
+        || launcher_releases_in(&load().unwrap()),
         |r| releases = Some(r.unwrap()),
     )
     .unwrap();
@@ -65,7 +65,7 @@ fn one_response_preserves_both_startup_results() {
     let old = baseline(load);
     assert_eq!(requests.swap(0, Ordering::Relaxed), 2);
     let new = shared(load);
-    assert_eq!(requests.load(Ordering::Relaxed), 1);
+    assert_eq!(requests.load(Ordering::Relaxed), 2);
     assert_eq!(
         serde_json::to_value(old).unwrap(),
         serde_json::to_value(new).unwrap()
@@ -82,8 +82,8 @@ fn errors_reach_releases_and_updates_without_fallback() {
         let mut published = None;
         let result = releases_and_updates_with(
             || Err(error.into()),
-            || panic!("no installed scan after failure"),
-            |_| panic!("no fallback after failure"),
+            || panic!("no launcher lookup after game failure"),
+            || panic!("no fallback after failure"),
             |r| published = Some(r),
         );
         assert_eq!(published.unwrap().unwrap_err(), error);
@@ -97,8 +97,8 @@ fn publish_games_before_older_launcher_fallback() {
     let result = releases_and_updates_with(
         || Ok(serde_json::json!([{"tag_name": "v2026.10.14", "assets": []}])),
         Vec::new,
-        |list| {
-            launcher_releases_in_with(list, |url| {
+        || {
+            launcher_releases_in_with(&serde_json::json!([]), |url| {
                 assert_eq!(events.borrow().first(), Some(&"releases"));
                 events.borrow_mut().push("fallback");
                 if url.contains("matching-refs") {
@@ -136,7 +136,7 @@ fn failed_launcher_fallback_keeps_game_result_and_checks_stay_fresh() {
                 Ok(serde_json::json!([{"tag_name": format!("v2026.10.{day}")}]))
             },
             Vec::new,
-            |list| launcher_releases_in_with(list, |_| Err("offline".into())),
+            || launcher_releases_in_with(&serde_json::json!([]), |_| Err("offline".into())),
             |r| published = Some(r.unwrap()),
         )
         .unwrap();
@@ -162,9 +162,11 @@ fn empty_or_prebuilt_only_fork_has_no_game_or_launcher_update() {
             let updates = releases_and_updates_with(
                 || Ok(list.clone()),
                 Vec::new,
-                |list| {
-                    launcher_releases_in_with(list, |url| {
-                        assert!(url.starts_with("https://api.github.com/repos/arismoko/horizon/"));
+                || {
+                    launcher_releases_in_with(&list, |url| {
+                        assert!(
+                            url.starts_with("https://api.github.com/repos/ShadowX0001/ShadowX/")
+                        );
                         Ok(missing.clone())
                     })
                 },
@@ -172,7 +174,7 @@ fn empty_or_prebuilt_only_fork_has_no_game_or_launcher_update() {
             )
             .unwrap();
             assert!(games.unwrap().is_empty());
-            assert!(updates.horizon.is_none());
+            assert!(updates.shadowx.is_none());
             assert!(updates.launcher.is_none());
         }
     }
@@ -188,7 +190,7 @@ fn each_platform_download_is_bound_to_the_fork_not_the_provider_url() {
             if cfg!(horizon_fork_launcher) {
                 "horizon-fork-launcher-linux-x86_64.tar.gz"
             } else {
-                "horizon-launcher-linux-x86_64.tar.gz"
+                "shadowx-launcher-linux-x86_64.tar.gz"
             },
         ),
         (
@@ -198,7 +200,7 @@ fn each_platform_download_is_bound_to_the_fork_not_the_provider_url() {
             if cfg!(horizon_fork_launcher) {
                 "horizon-fork-launcher-windows-x64.zip"
             } else {
-                "horizon-launcher-windows-x64.zip"
+                "shadowx-launcher-windows-x64.zip"
             },
         ),
         (
@@ -208,7 +210,7 @@ fn each_platform_download_is_bound_to_the_fork_not_the_provider_url() {
             if cfg!(horizon_fork_launcher) {
                 "horizon-fork-launcher-macos-arm64.zip"
             } else {
-                "horizon-launcher-macos-arm64.zip"
+                "shadowx-launcher-macos-arm64.zip"
             },
         ),
     ];
@@ -237,7 +239,12 @@ fn each_platform_download_is_bound_to_the_fork_not_the_provider_url() {
                 parsed[0].asset,
                 Some((
                     format!(
-                        "https://github.com/arismoko/horizon/releases/download/{tag}/{expected}"
+                        "https://github.com/{}/releases/download/{tag}/{expected}",
+                        if tag.starts_with("launcher@") {
+                            REPO
+                        } else {
+                            HORIZON_REPO
+                        }
                     ),
                     9
                 ))
@@ -267,7 +274,7 @@ fn decoy_asset_names_never_replace_the_exact_platform_asset() {
                 got[0].asset,
                 Some((
                     format!(
-                        "https://github.com/arismoko/horizon/releases/download/{encoded}/{asset}"
+                        "https://github.com/{HORIZON_REPO}/releases/download/{encoded}/{asset}"
                     ),
                     2
                 ))
@@ -290,7 +297,7 @@ fn decoy_asset_names_never_replace_the_exact_platform_asset() {
     assert!(draft.is_empty());
     assert_eq!(
         crate::signed::asset_url("../../x", "../evil.zip"),
-        "https://github.com/arismoko/horizon/releases/download/..%2F..%2Fx/..%2Fevil.zip"
+        format!("https://github.com/{HORIZON_REPO}/releases/download/..%2F..%2Fx/..%2Fevil.zip")
     );
 }
 
@@ -320,7 +327,7 @@ fn benchmark_shared_startup_response() {
             let updates = scope.spawn(|| {
                 let list = load(Duration::from_millis(5)).unwrap();
                 Updates {
-                    horizon: horizon_update(
+                    shadowx: shadowx_update(
                         &parse_releases(&list, ASSET, is_game_tag),
                         &installed_fixture(),
                     ),

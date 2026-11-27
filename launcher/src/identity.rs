@@ -1,7 +1,7 @@
 //! ShadowX product identity; storage and update namespaces are isolated from other launchers.
 macro_rules! identity {
     ($($name:ident: $upstream:literal => $fork:literal),* $(,)?) => {$ (
-        pub const $name: &str = if cfg!(horizon_fork_launcher) { $upstream } else { $fork };
+        pub const $name: &str = if cfg!(horizon_fork_launcher) { $fork } else { $upstream };
     )*};
 }
 identity! {
@@ -59,7 +59,7 @@ mod tests {
             &profile.join(LAUNCHER_FOLDER.to_ascii_uppercase())
         ));
         let other = if cfg!(horizon_fork_launcher) {
-            "horizon-launcher"
+            "shadowx/launcher"
         } else {
             "horizon-fork-arismoko/launcher"
         };

@@ -16,7 +16,7 @@ const NEOFORGE: &[u8] = include_bytes!("../assets/logos/neoforge.png");
 const FORGE: &[u8] = include_bytes!("../assets/logos/forge.png");
 /// Vanilla's mark: our own grass block (`tools/launcher_grass_block.py`), not Mojang's art.
 pub(super) const GRASS: &[u8] = include_bytes!("../assets/logos/grass-block.png");
-/// Horizon's mark (`docs/media/brand/icon.svg`), as the icon theme holds it.
+/// ShadowX's mark (`docs/media/brand/icon.svg`), as the icon theme holds it.
 const MARK: &[u8] = include_bytes!("../../packaging/icons/hicolor/256x256/apps/horizon.png");
 /// The loaders a logo is drawn for.
 const LOADERS: [&str; 4] = ["fabric", "quilt", "forge", "neoforge"];
@@ -58,7 +58,7 @@ impl Launcher {
         if instance.java.is_some() {
             return self.grass_mark(size);
         }
-        self.icon_image("mark:horizon".into(), size, false, || Some(MARK.to_vec()))
+        self.icon_image("mark:shadowx".into(), size, false, || Some(MARK.to_vec()))
     }
 
     /// Vanilla's grass block, `size` points square.
@@ -66,9 +66,9 @@ impl Launcher {
         self.icon_image("mark:grass".into(), size, false, || Some(GRASS.to_vec()))
     }
 
-    /// Horizon's own mark, `size` points square: the brand icon, its tile already rounded.
-    pub(super) fn horizon_mark(&mut self, size: f32) -> AnyElement {
-        match self.icon_image("mark:horizon".into(), size, false, || Some(MARK.to_vec())) {
+    /// ShadowX's own mark, `size` points square: the brand icon, its tile already rounded.
+    pub(super) fn shadowx_mark(&mut self, size: f32) -> AnyElement {
+        match self.icon_image("mark:shadowx".into(), size, false, || Some(MARK.to_vec())) {
             Some(image) => centred(image, size, self.scale).into_any_element(),
             None => div().size(px(size)).flex_none().into_any_element(),
         }

@@ -139,7 +139,7 @@ pub fn holds_game(path: &Path) -> bool {
 
 fn not_a_game(file: &str) -> String {
     trf(
-        "{file} is not a Horizon game for this computer.",
+        "{file} is not a ShadowX game for this computer.",
         &[("file", file)],
     )
 }
@@ -239,7 +239,7 @@ fn read_at_most(from: impl Read, file: &str) -> Result<Vec<u8>, String> {
     Ok(program)
 }
 
-/// Whether `program` is a Horizon game for this computer: it starts as this platform's programs
+/// Whether `program` is a ShadowX game for this computer: it starts as this platform's programs
 /// do (PE on Windows, Mach-O on macOS, ELF elsewhere: a Linux build picked on Windows would
 /// only fail to start) and carries the exact game executable identity signature.
 fn is_game(program: &[u8]) -> bool {
@@ -409,7 +409,7 @@ mod tests {
         fs::write(base.join("research-lock.json"), b"lock").unwrap();
         fs::write(base.join(CLIENT), b"signed").unwrap();
         fs::write(base.join(".installed"), b"").unwrap();
-        fs::create_dir_all(base.join("Horizon.app")).unwrap();
+        fs::create_dir_all(base.join("ShadowX.app")).unwrap();
         let built = program(b"fork build");
         let tag = install_in(
             &versions,
@@ -434,7 +434,7 @@ mod tests {
             .is_file());
         assert_eq!(fs::read(dir.join("research-lock.json")).unwrap(), b"lock");
         // The macOS app is made again from the imported program (game_app.rs).
-        assert!(!dir.join("Horizon.app").exists());
+        assert!(!dir.join("ShadowX.app").exists());
         let record: serde_json::Value =
             serde_json::from_str(&fs::read_to_string(dir.join(RECORD)).unwrap()).unwrap();
         assert_eq!(record["base"], "nightly-2026-11-01-c9d474d");

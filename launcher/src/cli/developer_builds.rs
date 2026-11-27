@@ -11,9 +11,9 @@ use std::path::{Path, PathBuf};
 /// Select this base explicitly with settings selected-version.
 #[derive(clap::Args)]
 pub(super) struct DeveloperInstall {
-    #[arg(help = tr("The trusted clean Horizon checkout to package"))]
+    #[arg(help = tr("The trusted clean ShadowX checkout to package"))]
     checkout: PathBuf,
-    #[arg(long, help = tr("The real horizon-client executable built from that committed checkout"))]
+    #[arg(long, help = tr("The real shadowx-client executable built from that committed checkout"))]
     program: PathBuf,
     #[arg(long, required = true, help = tr("Allow executing this checkout's build code and unsigned game with your rights"))]
     trust_unsigned: bool,
@@ -37,7 +37,7 @@ pub(super) fn import(
     as_json: bool,
 ) -> Result<(), String> {
     if !trust_unsigned {
-        return Err(tr("An imported build is unsigned: Horizon can't check where it came from. If you trust it, pass --trust-unsigned.").into());
+        return Err(tr("An imported build is unsigned: ShadowX can't check where it came from. If you trust it, pass --trust-unsigned.").into());
     }
     let tag = build_import::import(path, version)?;
     let prepared = backend::check_prepared(&tag);

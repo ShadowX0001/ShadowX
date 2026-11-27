@@ -18,7 +18,7 @@ pub(super) fn snapshot(tag: &str) -> Result<Vec<Release>, String> {
     let release = crate::github::json_optional(&format!(
         "{}/repos/{}/releases/tags/{tag}",
         crate::github::API,
-        super::REPO
+        super::HORIZON_REPO
     ))?
     .ok_or_else(|| format!("No Horizon snapshot is tagged {tag}."))?;
     let settings = super::Settings::load();

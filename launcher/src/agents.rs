@@ -1,12 +1,12 @@
-//! Connecting an AI agent (docs/agent-control.md): the launcher's MCP server, `horizon-launcher
-//! mcp`, as each common client wants it configured. `horizon-launcher agent-config` prints it and
+//! Connecting an AI agent (docs/agent-control.md): the launcher's MCP server, `shadowx-launcher
+//! mcp`, as each common client wants it configured. `shadowx-launcher agent-config` prints it and
 //! the Settings page's "Connect an AI agent" shows it. Nothing here runs a client's command: the
 //! window runs one only when the player clicks its button, and shows it first.
 use serde_json::{json, Value};
 use std::path::Path;
 
 /// The name the server is added under in every client.
-pub const SERVER_NAME: &str = "horizon";
+pub const SERVER_NAME: &str = "shadowx";
 
 pub struct Client {
     /// `claude-code`, `codex`, `cursor` or `generic`.
@@ -188,26 +188,26 @@ mod tests {
 
     #[test]
     fn configs_name_the_launcher_and_quote_its_path() {
-        let exe = Path::new("/Applications/Horizon Launcher.app/Contents/MacOS/horizon-launcher");
+        let exe = Path::new("/Applications/ShadowX Launcher.app/Contents/MacOS/shadowx-launcher");
         let all = clients(exe);
         let claude = &all[0];
         assert_eq!(
             claude.add_line().unwrap(),
-            "claude mcp add --scope user horizon -- '/Applications/Horizon Launcher.app/Contents/MacOS/horizon-launcher' mcp"
+            "claude mcp add --scope user shadowx -- '/Applications/ShadowX Launcher.app/Contents/MacOS/shadowx-launcher' mcp"
         );
         let parsed: Value = serde_json::from_str(&claude.config).unwrap();
-        assert_eq!(parsed["mcpServers"]["horizon"]["args"], json!(["mcp"]));
+        assert_eq!(parsed["mcpServers"]["shadowx"]["args"], json!(["mcp"]));
         assert_eq!(
-            parsed["mcpServers"]["horizon"]["command"],
+            parsed["mcpServers"]["shadowx"]["command"],
             exe.display().to_string()
         );
         let codex = &all[1];
         assert!(codex
             .config
-            .contains("command = \"/Applications/Horizon Launcher.app"));
+            .contains("command = \"/Applications/ShadowX Launcher.app"));
         assert_eq!(
-            toml_string(r#"C:\Horizon\"x".exe"#),
-            r#""C:\\Horizon\\\"x\".exe""#
+            toml_string(r#"C:\ShadowX\"x".exe"#),
+            r#""C:\\ShadowX\\\"x\".exe""#
         );
         assert!(all.iter().any(|c| c.id == "cursor" && c.add.is_none()));
     }

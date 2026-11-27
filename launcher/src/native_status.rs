@@ -502,7 +502,7 @@ mod tests {
         .unwrap();
         installed::Installed {
             entries: vec![installed::Entry {
-                source: SourceId::Horizon,
+                source: SourceId::ShadowX,
                 project: "registry".into(),
                 slug: "registry".into(),
                 title: "Registry mod".into(),

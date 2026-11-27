@@ -252,7 +252,7 @@ impl Launcher {
             Some(
                 div()
                     .child(tr(
-                        "At start and before you play, content installed from Horizon's registry moves to its newest version for this game. Never inside a modpack. Code mods and updates that would remove blocks or items wait for you.",
+                        "At start and before you play, content installed from ShadowX's registry moves to its newest version for this game. Never inside a modpack. Code mods and updates that would remove blocks or items wait for you.",
                     ))
                     .into_any_element(),
             ),
@@ -288,7 +288,7 @@ impl Launcher {
                     .map_or(tag.clone(), |r| update_name(r).to_owned()),
                 _ => tag,
             });
-        let tone = if self.updates.horizon.is_some() {
+        let tone = if self.updates.shadowx.is_some() {
             ui::Tone::Accent(ui::look().accent_soft)
         } else if self.update_error.is_some() {
             ui::Tone::Warn
@@ -326,8 +326,8 @@ impl Launcher {
             .when(!wide, |d| d.flex_col())
             .gap(px(8.))
             .child(tile(
-                self.horizon_mark(42.),
-                "Horizon".into(),
+                self.shadowx_mark(42.),
+                "ShadowX".into(),
                 installed.unwrap_or_else(|| tr("Nightly").to_string()),
                 div()
                     .flex()
@@ -439,7 +439,7 @@ impl Launcher {
                     0,
                     tr("Applications menu"),
                     note(if self.settings.desktop_entry() {
-                        "Horizon and its icon are in your desktop's menu."
+                        "ShadowX and its icon are in your desktop's menu."
                     } else {
                         "Not in your desktop's menu."
                     }),

@@ -206,7 +206,7 @@ fn hidden_native_mod(project: &Project) -> bool {
 /// Whether `project` is a native mod, which only runs once compiled into the game. The registry
 /// says so: a search of it has its index at hand.
 pub fn is_native_mod(project: &Project) -> bool {
-    project.source == SourceId::Horizon && browser::horizon::is_native_mod(&project.id)
+    project.source == SourceId::ShadowX && browser::horizon::is_native_mod(&project.id)
 }
 
 fn is_modrinth_shader_pack(project: &Project) -> bool {
@@ -354,7 +354,7 @@ pub fn remove(home: &Path, project: &Project) -> Result<Entry, String> {
         .entries
         .iter()
         .any(|e| e.source == project.source && e.project == project.id);
-    if ours || project.source != SourceId::Horizon || project.kind != Kind::Mod {
+    if ours || project.source != SourceId::ShadowX || project.kind != Kind::Mod {
         return installed::remove(home, &project.id);
     }
     // A registry mod that came some other way ([`mods_present`]): its files go, and it goes off.
@@ -396,7 +396,7 @@ pub fn remove(home: &Path, project: &Project) -> Result<Entry, String> {
 /// The mod id of an installed mod's entry, which the Mods page and `horizon-mods.txt` know it by:
 /// a registry mod's project id, else its file's name in `horizon-mods/` or `horizon-native-mods/`.
 pub fn mod_id(entry: &Entry) -> Option<String> {
-    if entry.source == SourceId::Horizon && entry.kind == Kind::Mod {
+    if entry.source == SourceId::ShadowX && entry.kind == Kind::Mod {
         return Some(entry.project.clone());
     }
     browser::horizon::mod_id(entry).map(str::to_owned)
@@ -411,7 +411,7 @@ pub fn install(
     progress: &dyn Fn(&str, f32),
 ) -> Result<Done, String> {
     forget_missing(home);
-    if project.source == SourceId::Horizon && project.kind == Kind::Mod {
+    if project.source == SourceId::ShadowX && project.kind == Kind::Mod {
         let ours = Installed::load(home)
             .entries
             .iter()

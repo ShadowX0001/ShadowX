@@ -1,6 +1,6 @@
 //! The game's app bundle on macOS. Started as a bare executable, the game shows in the Dock and
 //! in Cmd+Tab as "horizon-client" with the generic executable icon (winit's window icon does
-//! nothing there). So the launcher starts it from a small Horizon.app inside its version folder:
+//! nothing there). So the launcher starts it from a small ShadowX.app inside its version folder:
 //! the Info.plist names it and the icon is the launcher's own. The programs inside are hard links
 //! to the version's, so the bundle takes no disk space and the release's signature is untouched.
 use std::fs;
@@ -10,12 +10,12 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 /// The bundle's folder in a version folder.
-pub const APP: &str = "Horizon.app";
+pub const APP: &str = "ShadowX.app";
 
 /// The game, then horizon-ctl, which the game looks for beside itself (Copy Connection Details).
 const PROGRAMS: [&str; 2] = ["horizon-client", "horizon-ctl"];
 
-const ICON: &[u8] = include_bytes!("../../packaging/icons/horizon.icns");
+const ICON: &[u8] = include_bytes!("../../packaging/icons/fork/launcher.icns");
 
 /// Its own identifier, so macOS keeps it apart from the launcher (dev.horizon.launcher); the
 /// games category lets macOS turn Game Mode on when it plays full screen.
@@ -24,17 +24,17 @@ const INFO_PLIST: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>Horizon</string>
+	<string>ShadowX</string>
 	<key>CFBundleExecutable</key>
 	<string>horizon-client</string>
 	<key>CFBundleIconFile</key>
-	<string>horizon</string>
+	<string>shadowx</string>
 	<key>CFBundleIdentifier</key>
-	<string>dev.horizon.game</string>
+	<string>dev.shadowx.game</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Horizon</string>
+	<string>ShadowX</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>LSApplicationCategoryType</key>
@@ -51,7 +51,7 @@ const INFO_PLIST: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 /// microphone for voice chat; without the key macOS would kill the game instead of asking).
 const MIC_DESCRIPTION: &str = "__MIC_DESCRIPTION__";
 
-/// Brings `version`'s Horizon.app up to date and returns the game's program inside it. A program
+/// Brings `version`'s ShadowX.app up to date and returns the game's program inside it. A program
 /// replaced in the version folder (a reinstall, a build copied over) is linked again.
 pub fn ensure(version: &Path) -> io::Result<PathBuf> {
     let contents = version.join(APP).join("Contents");
@@ -68,7 +68,7 @@ pub fn ensure(version: &Path) -> io::Result<PathBuf> {
         1,
     );
     write_if_changed(&contents.join("Info.plist"), plist.as_bytes())?;
-    write_if_changed(&contents.join("Resources/horizon.icns"), ICON)?;
+    write_if_changed(&contents.join("Resources/shadowx.icns"), ICON)?;
     for (i, name) in PROGRAMS.into_iter().enumerate() {
         let (from, to) = (version.join(name), programs.join(name));
         // Releases before horizon-ctl shipped have only the game.
@@ -333,7 +333,7 @@ mod tests {
     fn unexpected_bundle_directory_is_preserved_and_reports_an_error() {
         let version = native_version("unexpected");
         fs::create_dir_all(version.join("native-data")).unwrap();
-        let unexpected = version.join("Horizon.app/Contents/MacOS/native-data");
+        let unexpected = version.join("ShadowX.app/Contents/MacOS/native-data");
         fs::create_dir_all(&unexpected).unwrap();
         fs::write(unexpected.join("keep"), b"user file").unwrap();
         assert_eq!(
@@ -352,7 +352,7 @@ mod tests {
     fn receipt_install_errors_do_not_overwrite_a_directory_or_the_source() {
         let version = native_version("receipt-error");
         fs::write(version.join("native-mods.json"), b"receipt").unwrap();
-        let unexpected = version.join("Horizon.app/Contents/MacOS/native-mods.json");
+        let unexpected = version.join("ShadowX.app/Contents/MacOS/native-mods.json");
         fs::create_dir_all(&unexpected).unwrap();
         fs::write(unexpected.join("keep"), b"user file").unwrap();
         assert!(ensure(&version).is_err());
@@ -375,15 +375,15 @@ mod tests {
         let program = ensure(&version).unwrap();
         assert_eq!(
             program,
-            version.join("Horizon.app/Contents/MacOS/horizon-client")
+            version.join("ShadowX.app/Contents/MacOS/horizon-client")
         );
         assert!(same_file(&program, &version.join("horizon-client")));
         assert!(same_file(
-            &version.join("Horizon.app/Contents/MacOS/horizon-ctl"),
+            &version.join("ShadowX.app/Contents/MacOS/horizon-ctl"),
             &version.join("horizon-ctl")
         ));
-        let plist = fs::read_to_string(version.join("Horizon.app/Contents/Info.plist")).unwrap();
-        assert!(plist.contains("<string>Horizon</string>"));
+        let plist = fs::read_to_string(version.join("ShadowX.app/Contents/Info.plist")).unwrap();
+        assert!(plist.contains("<string>ShadowX</string>"));
         // The mic prompt macOS needs before a native mod may open the microphone: a key with a
         // nonempty localized value, not the placeholder the template ships with.
         let (_, rest) = plist
@@ -399,7 +399,7 @@ mod tests {
         assert!(!value.is_empty());
         assert!(!plist.contains("__MIC_DESCRIPTION__"));
         assert_eq!(
-            fs::read(version.join("Horizon.app/Contents/Resources/horizon.icns")).unwrap(),
+            fs::read(version.join("ShadowX.app/Contents/Resources/shadowx.icns")).unwrap(),
             ICON
         );
 

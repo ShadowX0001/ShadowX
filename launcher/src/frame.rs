@@ -46,7 +46,7 @@ impl Launcher {
     /// chosen), as `ColorTile` draws it.
     pub(super) fn glass_instance_icon(&mut self, i: &Instance, size: f32) -> AnyElement {
         if i.kind == InstanceKind::Default && i.icon.is_none() {
-            return self.horizon_mark(size);
+            return self.shadowx_mark(size);
         }
         if let Some(picture) = self.instance_picture(i, size) {
             return instance_icons::centred(picture, size, self.scale).into_any_element();
@@ -120,7 +120,7 @@ impl Launcher {
                     ),
                     (None, None, None) => (Tone::Off, tr("No version installed").into()),
                     // Following the launcher's version, which has a newer one waiting.
-                    (None, Some(_), None) if self.updates.horizon.is_some() => (
+                    (None, Some(_), None) if self.updates.shadowx.is_some() => (
                         Tone::Accent(self.look.accent_soft),
                         tr("Update available").into(),
                     ),

@@ -62,9 +62,9 @@ fn native_registry_entries_are_mods_that_say_they_run_native_code() {
 }
 
 #[test]
-fn only_horizons_own_projects_go_without_the_not_endorsed_line() {
+fn only_shadowx_own_projects_go_without_the_not_endorsed_line() {
     let mut p = sample().projects[0].clone();
-    p.authors = vec!["Horizon".into()];
+    p.authors = vec!["ShadowX".into()];
     p.source = "https://github.com/horizon-rust/horizon-mod-zoom".into();
     assert!(official(&p));
     p.source = "https://github.com/someone/horizon-mod-zoom".into();
@@ -74,13 +74,13 @@ fn only_horizons_own_projects_go_without_the_not_endorsed_line() {
 }
 
 #[test]
-fn only_horizons_own_projects_say_they_come_from_horizon() {
+fn only_shadowx_own_projects_say_they_come_from_shadowx() {
     let mut index = sample();
     let id = index.projects[0].id.clone();
     index.projects[0].authors = vec!["levzzz5154".into()];
     index.projects[0].source = "https://github.com/levzzz5154/horizon-mod-zoom".into();
     assert!(!official_in(Some(&index), &id), "a contributor's project");
-    index.projects[0].authors = vec!["Horizon".into()];
+    index.projects[0].authors = vec!["ShadowX".into()];
     index.projects[0].source = "https://github.com/horizon-rust/horizon-mod-zoom".into();
     assert!(official_in(Some(&index), &id));
     assert!(!official_in(Some(&index), "not_listed"));
