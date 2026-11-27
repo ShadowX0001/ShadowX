@@ -352,7 +352,7 @@ impl Launcher {
         let n = 0;
         let account = card().child(self.glass_account(cx));
         let updates = card()
-            .child(self.update_tiles(b.shadowx, b.horizon_action, b.launcher, b.launcher_action))
+            .child(self.update_tiles(b.horizon, b.horizon_action, b.launcher, b.launcher_action))
             .child(index_row(
                 0,
                 tr("Install new versions automatically"),
