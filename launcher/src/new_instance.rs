@@ -236,7 +236,7 @@ impl Launcher {
         .detach();
     }
 
-    /// The tabs over a new instance's dialog: ShadowX, Vanilla, Modded.
+    /// The tabs over a new instance's dialog: Horizon, Vanilla, Modded.
     pub(super) fn kind_tabs(&self, cx: &mut Context<Self>) -> Div {
         let t = self.theme;
         let now = self.instances.dialog.as_ref().map(|d| d.java.kind);
@@ -577,7 +577,7 @@ mod tests {
 
     #[test]
     fn a_default_name_skips_the_ones_taken() {
-        assert_eq!(free_name("My ShadowX".into(), &["ShadowX"]), "My ShadowX");
+        assert_eq!(free_name("My Horizon".into(), &["ShadowX"]), "My ShadowX");
         assert_eq!(
             free_name("My ShadowX".into(), &["my shadowx", "My ShadowX 2"]),
             "My ShadowX 3"
