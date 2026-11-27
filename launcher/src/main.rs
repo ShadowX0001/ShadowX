@@ -812,7 +812,7 @@ impl Launcher {
         // (`new-instance-horizon`, `new-instance-vanilla`: on those).
         let kind = match std::env::var("HORIZON_LAUNCHER_PAGE").as_deref() {
             Ok("new-instance") => Some(new_instance::NewKind::Modded),
-            Ok("new-instance-horizon") => Some(new_instance::NewKind::Horizon),
+            Ok("new-instance-horizon") => Some(new_instance::NewKind::ShadowX),
             Ok("new-instance-vanilla") => Some(new_instance::NewKind::Vanilla),
             _ => None,
         };
@@ -989,7 +989,7 @@ impl Launcher {
     /// Installs the Horizon version the last check found, keeping the player's choice of
     /// version unless they were on the newest one.
     fn install_update(&mut self) {
-        let Some(release) = self.updates.horizon.clone() else {
+        let Some(release) = self.updates.shadowx.clone() else {
             return;
         };
         if self.installing.is_some() || self.removing.contains(&release.tag) {
@@ -1208,8 +1208,8 @@ impl Launcher {
                                     eprintln!("Could not mark updated Nightly {tag}: {e}");
                                 }
                             }
-                            if self.updates.horizon.as_ref().is_some_and(|r| r.tag == tag) {
-                                self.updates.horizon = None;
+                            if self.updates.shadowx.as_ref().is_some_and(|r| r.tag == tag) {
+                                self.updates.shadowx = None;
                             }
                             // An instance's own version leaves the other instances on theirs.
                             let select = as_update.is_none_or(|(_, select)| select)
@@ -3712,7 +3712,7 @@ impl Launcher {
                 cx.notify();
             }),
         );
-        let horizon = match (&self.updates.horizon, &self.update_error) {
+        let horizon = match (&self.updates.shadowx, &self.update_error) {
             (Some(r), _) => trf("{version} available", &[("version", update_name(r))]),
             (None, Some(e)) => e.clone(),
             (None, None) if self.checked.is_some() => tr("Up to date").to_string(),
@@ -3720,7 +3720,7 @@ impl Launcher {
         };
         let horizon_action = self
             .updates
-            .horizon
+            .shadowx
             .as_ref()
             .filter(|_| self.installing.is_none())
             .map(|_| {
