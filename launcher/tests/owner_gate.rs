@@ -1,5 +1,5 @@
 //! The owner gate from the outside: with no account that owns Minecraft: Java Edition in the
-//! launcher, neither `horizon-launcher play` nor the MCP server's play starts the game.
+//! launcher, neither `shadowx-launcher play` nor the MCP server's play starts the game.
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
@@ -50,7 +50,7 @@ fn the_cli_refuses_to_play_without_an_owner() {
     let said = text(&out);
     assert!(!out.status.success(), "{said}");
     assert!(said.contains(REFUSED), "{said}");
-    assert!(said.contains("horizon-launcher account sign-in"), "{said}");
+    assert!(said.contains("shadowx-launcher account sign-in"), "{said}");
     // Nothing of the game ran, and a refusal doesn't rewrite the accounts.
     assert!(!root.join("game/sessions").exists());
     let accounts = std::fs::read_to_string(root.join("launcher/accounts.json")).unwrap();
