@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - shadowx-dev
+      - shadowx-android-launcher
   pull_request:
     branches:
       - main
