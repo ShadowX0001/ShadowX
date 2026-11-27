@@ -56,3 +56,6 @@ jobs:
 
       - name: Run launcher tests
         run: cargo test --manifest-path launcher/Cargo.toml --locked
+
+      - name: Build optimized launcher
+        run: cargo build --manifest-path launcher/Cargo.toml --release --locked
