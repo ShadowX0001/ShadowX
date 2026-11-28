@@ -337,13 +337,13 @@ public final class LauncherActivity extends Activity {
                 float w=getWidth(),h=getHeight(),pad=d(22);
                 if(page==0 && downY>=playTop-d(8) && downY<=playBottom+d(8)) { play(); return true; }
                 float contentY=downY;
-                if(page==1 && contentY>d(210) && contentY<d(275)) { chooseGameFolder(); return true; }
-                if(page==1 && contentY>d(275) && contentY<d(345)) { play(); return true; }
-                if(page==2 && contentY>d(210) && contentY<d(275)) { pickImport(); return true; }
-                if(page==3 && contentY>d(210) && contentY<d(275)) {
+                if(page==1 && contentY>d(295) && contentY<d(370)) { chooseGameFolder(); return true; }
+                if(page==1 && contentY>d(370) && contentY<d(445)) { play(); return true; }
+                if(page==2 && contentY>d(295) && contentY<d(370)) { pickImport(); return true; }
+                if(page==3 && contentY>d(295) && contentY<d(370)) {
                     startActivity(new Intent(LauncherActivity.this,DiagnosticsActivity.class)); return true;
                 }
-                if(page==3 && contentY>d(275) && contentY<d(345)) { chooseGameFolder(); return true; }
+                if(page==3 && contentY>d(370) && contentY<d(445)) { chooseGameFolder(); return true; }
                 if(y>=navTop) {
                     int selected=Math.min(3,Math.max(0,(int)(x/(w/4f))));
                     page=selected; invalidate(); return true;
