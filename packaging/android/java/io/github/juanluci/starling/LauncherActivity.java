@@ -30,6 +30,7 @@ public final class LauncherActivity extends Activity {
     static final String AFTER = "dev.shadowx.launcher.AFTER";
     static final String MESSAGE = "dev.shadowx.launcher.MESSAGE";
     private LauncherHome home;
+    private static final Object IMPORT_LOCK = new Object();
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -115,7 +116,7 @@ public final class LauncherActivity extends Activity {
                 } else {
                     lastImport = "Imported: " + imported.getName();
                     new AlertDialog.Builder(this).setTitle("Import complete")
-                            .setMessage(lastImport + "\\nSaved to ShadowX import inbox.")
+                            .setMessage(lastImport + "\nSaved to ShadowX import inbox.")
                             .setPositiveButton("OK", null).show();
                 }
                 if (home != null) home.invalidate();
@@ -407,7 +408,7 @@ public final class LauncherActivity extends Activity {
         final File inbox = new File(activity.getFilesDir(), "import-inbox");
         final String name = displayName(activity, file);
         new Thread(() -> {
-            File part = new File(inbox, name + ".part");
+            File part = new File(inbox, name + "." + SystemClock.elapsedRealtimeNanos() + ".part");
             File destination = null;
             String failure = null;
             try {
@@ -428,22 +429,24 @@ public final class LauncherActivity extends Activity {
                     }
                     out.flush();
                 }
-                destination = new File(inbox, name);
-                if (destination.exists()) {
-                    String base = name;
-                    String extension = "";
-                    int dot = name.lastIndexOf('.');
-                    if (dot > 0) {
-                        base = name.substring(0, dot);
-                        extension = name.substring(dot);
+                synchronized (IMPORT_LOCK) {
+                    destination = new File(inbox, name);
+                    if (destination.exists()) {
+                        String base = name;
+                        String extension = "";
+                        int dot = name.lastIndexOf('.');
+                        if (dot > 0) {
+                            base = name.substring(0, dot);
+                            extension = name.substring(dot);
+                        }
+                        int suffix = 2;
+                        do {
+                            destination = new File(inbox, base + " (" + suffix++ + ")" + extension);
+                        } while (destination.exists());
                     }
-                    int suffix = 2;
-                    do {
-                        destination = new File(inbox, base + " (" + suffix++ + ")" + extension);
-                    } while (destination.exists());
-                }
-                if (!part.renameTo(destination)) {
-                    throw new java.io.IOException("Could not safely finish saving the imported file.");
+                    if (!part.renameTo(destination)) {
+                        throw new java.io.IOException("Could not safely finish saving the imported file.");
+                    }
                 }
             } catch (Exception e) {
                 part.delete();
