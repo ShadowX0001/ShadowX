@@ -456,10 +456,14 @@ fn live_modrinth_search_pick_and_download() {
 }
 
 #[test]
-fn curseforge_is_coming_soon_and_never_searched() {
+fn curseforge_is_enabled_only_when_an_api_key_is_configured() {
     let ids: Vec<SourceId> = sources().iter().map(|s| s.id()).collect();
-    assert_eq!(ids, [SourceId::Modrinth, SourceId::ShadowX]);
-    assert!(source(SourceId::CurseForge).is_none());
+    assert!(ids.contains(&SourceId::Modrinth));
+    assert!(ids.contains(&SourceId::ShadowX));
+    assert_eq!(
+        ids.contains(&SourceId::CurseForge),
+        curseforge::CurseForge::from_env().is_some()
+    );
 }
 
 
