@@ -48,8 +48,12 @@ public final class LauncherActivity extends Activity {
             AlertDialog copying = new AlertDialog.Builder(this,
                     android.R.style.Theme_DeviceDefault_Dialog_Alert)
                     .setMessage("Importing file into ShadowX…").setCancelable(false).show();
-            receive(this, file, () -> {
+            receive(this, file, (imported, error) -> {
                 copying.dismiss();
+                if (error != null) {
+                    new AlertDialog.Builder(this).setTitle("Import failed")
+                            .setMessage(error).setPositiveButton("OK", null).show();
+                }
                 showHome();
             });
         } else if (StartupRecovery.interrupted(this)) {
@@ -103,12 +107,18 @@ public final class LauncherActivity extends Activity {
         if (request == PICK_IMPORT) {
             lastImport = "Importing " + displayName(this, uri);
             if (home != null) home.invalidate();
-            receive(this, uri, () -> {
-                lastImport = "Imported: " + displayName(this, uri);
+            receive(this, uri, (imported, error) -> {
+                if (error != null) {
+                    lastImport = "Import failed: " + error;
+                    new AlertDialog.Builder(this).setTitle("Import failed")
+                            .setMessage(error).setPositiveButton("OK", null).show();
+                } else {
+                    lastImport = "Imported: " + imported.getName();
+                    new AlertDialog.Builder(this).setTitle("Import complete")
+                            .setMessage(lastImport + "\\nSaved to ShadowX import inbox.")
+                            .setPositiveButton("OK", null).show();
+                }
                 if (home != null) home.invalidate();
-                new AlertDialog.Builder(this).setTitle("Import received")
-                        .setMessage(lastImport + "\nSaved to ShadowX import inbox.")
-                        .setPositiveButton("OK", null).show();
             });
         } else if (request == PICK_GAME_FOLDER) {
             int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -389,19 +399,61 @@ public final class LauncherActivity extends Activity {
         if(Intent.ACTION_SEND.equals(intent.getAction()))return intent.getParcelableExtra(Intent.EXTRA_STREAM);
         return null;
     }
-    static void receive(final Activity activity,final Uri file,final Runnable done) {
-        final File inbox=new File(activity.getFilesDir(),"import-inbox");
-        final String name=displayName(activity,file);
+    interface ImportCallback {
+        void complete(File imported, String error);
+    }
+
+    static void receive(final Activity activity, final Uri file, final ImportCallback callback) {
+        final File inbox = new File(activity.getFilesDir(), "import-inbox");
+        final String name = displayName(activity, file);
         new Thread(() -> {
-            inbox.mkdirs();File part=new File(inbox,name+".part");
-            try(InputStream in=activity.getContentResolver().openInputStream(file);
-                OutputStream out=new FileOutputStream(part)){
-                if(in==null)throw new java.io.IOException("nothing to read");
-                byte[] buffer=new byte[1<<16];for(int n;(n=in.read(buffer))>0;)out.write(buffer,0,n);
-            }catch(Exception e){part.delete();android.util.Log.w("shadowx","could not receive "+name,e);}
-            if(part.exists()&&!part.renameTo(new File(inbox,name)))part.delete();
-            if(done!=null)activity.runOnUiThread(done);
-        },"shadowx-receive").start();
+            File part = new File(inbox, name + ".part");
+            File destination = null;
+            String failure = null;
+            try {
+                if (!inbox.isDirectory() && !inbox.mkdirs()) {
+                    throw new java.io.IOException("Could not create the import inbox.");
+                }
+                try (InputStream in = activity.getContentResolver().openInputStream(file);
+                     OutputStream out = new FileOutputStream(part, false)) {
+                    if (in == null) throw new java.io.IOException("The selected file could not be opened.");
+                    byte[] buffer = new byte[1 << 16];
+                    long total = 0;
+                    for (int n; (n = in.read(buffer)) != -1;) {
+                        total += n;
+                        if (total > (2L * 1024L * 1024L * 1024L)) {
+                            throw new java.io.IOException("Files larger than 2 GiB cannot be imported.");
+                        }
+                        out.write(buffer, 0, n);
+                    }
+                    out.flush();
+                }
+                destination = new File(inbox, name);
+                if (destination.exists()) {
+                    String base = name;
+                    String extension = "";
+                    int dot = name.lastIndexOf('.');
+                    if (dot > 0) {
+                        base = name.substring(0, dot);
+                        extension = name.substring(dot);
+                    }
+                    int suffix = 2;
+                    do {
+                        destination = new File(inbox, base + " (" + suffix++ + ")" + extension);
+                    } while (destination.exists());
+                }
+                if (!part.renameTo(destination)) {
+                    throw new java.io.IOException("Could not safely finish saving the imported file.");
+                }
+            } catch (Exception e) {
+                part.delete();
+                failure = e.getMessage() == null ? "Unknown file import error." : e.getMessage();
+                android.util.Log.w("shadowx", "could not receive " + name, e);
+            }
+            final File result = failure == null ? destination : null;
+            final String error = failure;
+            if (callback != null) activity.runOnUiThread(() -> callback.complete(result, error));
+        }, "shadowx-receive").start();
     }
     private static String displayName(Context context,Uri file) {
         String name=null;
