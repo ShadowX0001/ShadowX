@@ -363,7 +363,7 @@ public final class LauncherActivity extends Activity {
                     return true;
                 }
                 if(page!=0 && downY<d(100)) { page=0; invalidate(); return true; }
-                if(page==0 && downY>h-d(190)) { launchGame(); return true; }
+                if(page==0 && downY>playBottom) { launchGame(); return true; }
                 performClick(); return true;
             }
             return true;
