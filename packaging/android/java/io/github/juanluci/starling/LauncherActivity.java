@@ -274,7 +274,7 @@ public final class LauncherActivity extends Activity {
             txt(c,"SHADOWX",pad+d(45),top+d(16),22*u,bright,true);
             txt(c,"LAUNCHER",pad+d(47),top+d(34),9*u,purple,true);
             box(c,w-d(82),top-d(1),d(60),d(29),d(15),panel2);
-            center(c,"ONLINE",w-d(52),top+d(18),9*u,0xFF9DF58B,true);
+            center(c,"READY",w-d(52),top+d(18),9*u,0xFF9DF58B,true);
             float y=top+d(62);
             if(page==0) {
                 txt(c,"YOUR WORLD.",pad,y+d(12),12*u,muted,true);
@@ -289,22 +289,22 @@ public final class LauncherActivity extends Activity {
                 box(c,pad+d(42),ground-d(24),d(52),d(24),d(5),0xFF552A79);
                 box(c,pad+d(94),ground-d(45),d(52),d(45),d(5),0xFF7136A5);
                 box(c,pad+d(146),ground-d(18),d(52),d(18),d(5),0xFF552A79);
-                txt(c,"JAVA EDITION",pad+d(35),heroY+d(49),10*u,0xFFE2C9FF,true);
+                txt(c,"SHADOWX GAME ENGINE",pad+d(35),heroY+d(49),10*u,0xFFE2C9FF,true);
                 txt(c,"Ready when you are.",pad+d(35),heroY+d(70),16*u,bright,true);
                 txt(c,"Manage versions, mods and controls.",pad+d(35),heroY+d(88),10*u,muted,false);
                 playTop=heroY+heroH+d(18); playBottom=playTop+d(58);
                 box(c,pad,playTop,w-pad*2,d(58),d(17),0xFF8D25E8);
-                center(c,"▶    PLAY MINECRAFT",w/2,playTop+d(36),16*u,0xFFFFFFFF,true);
+                center(c,"▶    OPEN SHADOWX LAUNCHER",w/2,playTop+d(36),15*u,0xFFFFFFFF,true);
                 float cardsY=playBottom+d(18), gap=d(10), cardW=(w-pad*2-gap)/2;
                 box(c,pad,cardsY,cardW,d(74),d(15),panel);
                 box(c,pad+cardW+gap,cardsY,cardW,d(74),d(15),panel);
-                txt(c,"▦  INSTANCES",pad+d(13),cardsY+d(28),11*u,bright,true);
+                txt(c,"▦  GAME PROFILES",pad+d(13),cardsY+d(28),11*u,bright,true);
                 txt(c,"Game profiles",pad+d(13),cardsY+d(49),9*u,muted,false);
-                txt(c,"✦  MODS",pad+cardW+gap+d(13),cardsY+d(28),11*u,bright,true);
+                txt(c,"✦  MODS & CONTENT",pad+cardW+gap+d(13),cardsY+d(28),11*u,bright,true);
                 txt(c,"Customize gameplay",pad+cardW+gap+d(13),cardsY+d(49),9*u,muted,false);
                 float infoY=cardsY+d(91);
                 txt(c,"SHADOWX ENGINE",pad,infoY,9*u,purple,true);
-                txt(c,"Touch controls  •  Controller ready",pad,infoY+d(19),10*u,muted,false);
+                txt(c,"Accounts  •  Controls  •  Performance  •  Settings",pad,infoY+d(19),10*u,muted,false);
                 navTop=h-d(65);
             } else {
                 String title=page==1?"INSTANCES":page==2?"MODS & PACKS":page==3?"SETTINGS":"ABOUT SHADOWX";
@@ -358,10 +358,12 @@ public final class LauncherActivity extends Activity {
                 if(page==3 && contentY>d(370) && contentY<d(445)) { chooseGameFolder(); return true; }
                 if(y>=navTop) {
                     int selected=Math.min(3,Math.max(0,(int)(x/(w/4f))));
-                    page=selected; invalidate(); return true;
+                    if (selected == 0) { page=0; invalidate(); }
+                    else { launchGame(); }
+                    return true;
                 }
                 if(page!=0 && downY<d(100)) { page=0; invalidate(); return true; }
-                if(page==0 && downY>h-d(160)) { page=x<w/2?1:2; invalidate(); return true; }
+                if(page==0 && downY>h-d(190)) { launchGame(); return true; }
                 performClick(); return true;
             }
             return true;
