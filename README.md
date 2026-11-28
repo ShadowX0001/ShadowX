@@ -6,17 +6,18 @@ ShadowX is an independent Minecraft client and launcher project based on the Sta
 
 | Component | Current implementation |
 | --- | --- |
-| Android client | Rust `NativeActivity` game client packaged as an APK. The Android build script supports ARM64, ARM32, x86 and x86_64 ABIs; runtime testing is still required on real devices. |
-| Desktop launcher | Separate Rust/GPUI application for Windows, macOS and Linux. Its source includes account, instance, version, mod and server-management flows. |
+| Android game client | Rust `NativeActivity` application packaged as an APK. The build supports ARM64, ARM32, x86 and x86_64; ARM64 is the primary Android build target. |
+| Desktop launcher | Separate Rust/GPUI application for Windows, macOS and Linux. It includes account, instance, version, mod and server-management flows. |
+| Touch controls | Native touch state machine, editable layouts, custom controls, Bedrock-style controls and strict JSON import/export validation. |
 | Mod tooling | Rust CLI exposed as `cargo shadowx-mod`; supports content mods and code-mod workflows (WASM and native templates). |
-| Android mods | The current Android client loads native mod libraries. Native mods must be built for the target Android ABI and the matching game build. Do not assume desktop binaries or every WASM mod can run on Android. |
+| Android mods | Android loads native mod libraries built for the target Android ABI and matching game build. Desktop binaries and arbitrary WASM mods are not assumed to run on Android. |
 
-## Build and release
+## CI builds and downloads
 
-- The `ShadowX bootstrap and build` workflow checks the workspace and produces CI artifacts.
-- The `ShadowX release builds` workflow builds desktop packages and Android APKs for ARM64, ARM32, x86 and x86_64; each ABI is published as a separate asset. Push a `v*` tag to publish a GitHub Release after all required jobs pass.
-- CI APKs use the build script's local debug signing key unless a release keystore is explicitly configured. They are suitable for testing, not a Play Store production signing setup.
-- A successful compile is not a substitute for device smoke tests, multiplayer tests, graphics-driver checks or installer testing. Android APKs built by CI use a development signing key and are not suitable as production Play Store releases.
+- The **ShadowX CI** workflow runs Rust formatting, workspace/launcher checks, tests and optimized desktop launcher compilation on the development branch.
+- The **ShadowX bootstrap and build** workflow builds the Android ARM64 development APK and desktop launcher artifacts. Open the repository's Actions tab, select the completed workflow run, and download the `shadowx-android-arm64-dev` artifact for the APK.
+- The **ShadowX release builds** workflow builds desktop packages and Android APKs for ARM64, ARM32, x86 and x86_64. It publishes a GitHub Release when a `launcher@*` tag is pushed.
+- CI APKs use a development/debug signing key unless a release keystore is explicitly configured. They are for development and installation testing, not Play Store production signing.
 
 ## Mod SDK quick start
 
@@ -39,9 +40,11 @@ For a native code mod, use `--template native`. Native mods are platform-specifi
 
 Useful commands include `cargo shadowx-mod hooks`, `cargo shadowx-mod sdk`, `cargo shadowx-mod fits` and `cargo shadowx-mod run`. Run `cargo shadowx-mod --help` to see the CLI's current command help.
 
-## Important platform boundaries
+## Platform scope and compatibility
 
-The Android app is currently the native game client, not a full Android launcher equivalent to Mojo Launcher. The desktop launcher and Android client are separate application front ends. Mojo control-layout import, a full Mojo-style Android instance/version manager, and verified end-to-end offline-account behavior on every platform are not claimed as implemented. These require dedicated implementation and real-device validation.
+The Android APK is the native game client; it is not yet a full Android Java Edition launcher equivalent to Mojo Launcher. The desktop launcher and Android client are separate front ends. The native touch-layout format has strict import/export validation. Pojav/Mojo control-map JSON uses a different schema and must pass through a dedicated converter before it can be claimed as compatible. A full Android instance/version manager and end-to-end Microsoft/offline account flow on Android are not claimed as complete.
+
+A successful compile proves source/build compatibility only. It does not replace device smoke tests, multiplayer checks, graphics-driver checks or installer testing.
 
 ## License and attribution
 

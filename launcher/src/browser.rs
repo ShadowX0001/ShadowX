@@ -75,7 +75,7 @@ impl Kind {
 pub enum SourceId {
     Modrinth,
     CurseForge,
-    /// Horizon's registry of reviewed mods, modpacks and resource packs ([`horizon`]).
+    /// ShadowX's registry of reviewed mods, modpacks and resource packs ([`horizon`]).
     #[serde(alias = "horizon")]
     ShadowX,
 }
@@ -85,12 +85,12 @@ impl SourceId {
         match self {
             SourceId::Modrinth => "Modrinth",
             SourceId::CurseForge => "CurseForge",
-            SourceId::ShadowX => "Horizon",
+            SourceId::ShadowX => "ShadowX",
         }
     }
 
     /// The source a list names after the author ("from {source}") for project `id`: Modrinth and
-    /// CurseForge always, Horizon's registry only for Horizon's own projects
+    /// CurseForge always, ShadowX's registry only for ShadowX's own projects
     /// ([`horizon::official`]), so a contributor's project reads "by <author>" alone.
     pub fn shown_for(self, id: &str) -> Option<&'static str> {
         match self {
@@ -277,17 +277,22 @@ pub trait Source: Send + Sync {
     }
 }
 
-/// What the launcher says wherever CurseForge would be.
-pub const CURSEFORGE_SOON: &str = "CurseForge support is coming soon.";
+/// What the launcher says when CurseForge is unavailable because no API key is configured.
+pub const CURSEFORGE_SOON: &str =
+    "CurseForge is disabled. Configure SHADOWX_CURSEFORGE_API_KEY to enable it.";
 /// What another source answers for shader packs: ShadowX's own are on its registry only.
 pub const SHADERS_ON_SHADOWX: &str =
     "ShadowX's shader packs are on ShadowX's registry: pick ShadowX.";
 
-/// The sources this launcher uses: Modrinth and ShadowX's registry. CurseForge support is coming
-/// soon: its API needs a paid key, so no search or install goes to it; `curseforge` is kept for
-/// then.
+/// The sources available in this build. CurseForge is enabled only when its API key is present;
+/// without one, the browser remains fully usable with Modrinth and ShadowX's registry.
 pub fn sources() -> Vec<Box<dyn Source>> {
-    vec![Box::new(modrinth::Modrinth), Box::new(horizon::Registry)]
+    let mut sources: Vec<Box<dyn Source>> =
+        vec![Box::new(modrinth::Modrinth), Box::new(horizon::Registry)];
+    if let Some(curseforge) = curseforge::CurseForge::from_env() {
+        sources.push(Box::new(curseforge));
+    }
+    sources
 }
 
 /// The source of that id, when this launcher can use it.
@@ -341,7 +346,7 @@ pub fn support(kind: Kind, game_versions: &[String], loaders: &[String]) -> Supp
                 ))
             } else {
                 Support::Partial(
-                    "Not checked yet: the launcher reads its jar to say what of it ports.".into(),
+                    "Java mod code does not run in ShadowX. The launcher inspects this JAR and ports only the supported content into ShadowX-native data.".into(),
                 )
             }
         }
