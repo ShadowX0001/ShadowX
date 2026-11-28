@@ -277,17 +277,22 @@ pub trait Source: Send + Sync {
     }
 }
 
-/// What the launcher says wherever CurseForge would be.
-pub const CURSEFORGE_SOON: &str = "CurseForge support is coming soon.";
+/// What the launcher says when CurseForge is unavailable because no API key is configured.
+pub const CURSEFORGE_SOON: &str =
+    "CurseForge is disabled. Configure SHADOWX_CURSEFORGE_API_KEY to enable it.";
 /// What another source answers for shader packs: ShadowX's own are on its registry only.
 pub const SHADERS_ON_SHADOWX: &str =
     "ShadowX's shader packs are on ShadowX's registry: pick ShadowX.";
 
-/// The sources this launcher uses: Modrinth and ShadowX's registry. CurseForge support is coming
-/// soon: its API needs a paid key, so no search or install goes to it; `curseforge` is kept for
-/// then.
+/// The sources available in this build. CurseForge is enabled only when its API key is present;
+/// without one, the browser remains fully usable with Modrinth and ShadowX's registry.
 pub fn sources() -> Vec<Box<dyn Source>> {
-    vec![Box::new(modrinth::Modrinth), Box::new(horizon::Registry)]
+    let mut sources: Vec<Box<dyn Source>> =
+        vec![Box::new(modrinth::Modrinth), Box::new(horizon::Registry)];
+    if let Some(curseforge) = curseforge::CurseForge::from_env() {
+        sources.push(Box::new(curseforge));
+    }
+    sources
 }
 
 /// The source of that id, when this launcher can use it.
