@@ -1,6 +1,6 @@
 # The launcher's mod browser
 
-Search Modrinth (CurseForge support is coming soon) for Java mods, modpacks, resource packs and data packs, and Horizon's
+Search Modrinth and (when `SHADOWX_CURSEFORGE_API_KEY` is configured) CurseForge for Java mods, modpacks, resource packs and data packs, and ShadowX's
 registry for Horizon's own mods, modpacks, resource packs and shader packs; see how well each one runs before installing it, and install it with its checksum checked. This is item 16 of the roadmap and issue #577. The code is in
 `launcher/src/browser.rs` and `launcher/src/browser/`.
 
@@ -83,7 +83,7 @@ start); the hedge places and its recipe crafts 4.
 
 The launcher's **Mods** page has the five kinds as tabs: **Mods**, **Modpacks**, **Resource packs**, **Shader packs**
 and **Data packs**, each with a search field (Enter searches). Mods, Modpacks, Resource packs and Data packs pick their
-source: Horizon's registry or Modrinth, with **CurseForge (coming soon)** beside them, disabled. Mods start on
+source: Horizon's registry or Modrinth, with **CurseForge** shown when `SHADOWX_CURSEFORGE_API_KEY` is configured; without a key it is disabled with setup guidance. Mods start on
 Horizon's registry; **Shader packs** search it only (Horizon's own packs); data packs install into the world picked
 under the search. On Horizon's registry, **Filters** lists the kind's categories (`horizon_mod_package::index::page::categories`,
 named and ordered as on playhorizon.dev) and the tags its projects carry (the 30 most used, `#tag`): a result has
@@ -145,7 +145,7 @@ tab and plain Minecraft instances show it. No Mojang file or logo is in the laun
 prohibited without explicit written permission from Rinth, Inc." (`packages/assets/COPYING.md` in
 [modrinth/code](https://github.com/modrinth/code/blob/main/packages/assets/COPYING.md)), and its
 [terms](https://modrinth.com/legal/terms) ask for prior written permission to use its marks. Results name their source
-in text ("from Modrinth") until Rinth, Inc. agrees. CurseForge support, and so its logo, is coming soon.
+in text ("from Modrinth") until Rinth, Inc. agrees. CurseForge results are available only when the API key is configured; the source is named in text until its branding terms are reviewed.
 
 ## Installing, updating, removing
 
