@@ -66,7 +66,89 @@ public final class LauncherActivity extends Activity {
         hideBars();
     }
 
+    private static final int PICK_IMPORT = 7001;
+    private static final int PICK_GAME_FOLDER = 7002;
+    private String lastImport = "No files imported yet";
+
+    private void pickImport() {
+        Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        pick.addCategory(Intent.CATEGORY_OPENABLE);
+        pick.setType("*/*");
+        try { startActivityForResult(pick, PICK_IMPORT); }
+        catch (Exception e) {
+            new AlertDialog.Builder(this).setTitle("File picker unavailable")
+                    .setMessage("Android could not open a file picker.")
+                    .setPositiveButton("OK", null).show();
+        }
+    }
+
+    private void chooseGameFolder() {
+        Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        pick.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        try { startActivityForResult(pick, PICK_GAME_FOLDER); }
+        catch (Exception e) {
+            new AlertDialog.Builder(this).setTitle("Folder picker unavailable")
+                    .setMessage("Android could not open the folder picker.")
+                    .setPositiveButton("OK", null).show();
+        }
+    }
+
+    @Override protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if (result != RESULT_OK || data == null || data.getData() == null) return;
+        Uri uri = data.getData();
+        if (request == PICK_IMPORT) {
+            lastImport = "Importing " + displayName(this, uri);
+            if (home != null) home.invalidate();
+            receive(this, uri, () -> {
+                lastImport = "Imported: " + displayName(this, uri);
+                if (home != null) home.invalidate();
+                new AlertDialog.Builder(this).setTitle("Import received")
+                        .setMessage(lastImport + "\nSaved to ShadowX import inbox.")
+                        .setPositiveButton("OK", null).show();
+            });
+        } else if (request == PICK_GAME_FOLDER) {
+            int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            try {
+                getContentResolver().takePersistableUriPermission(uri, flags);
+                getSharedPreferences("shadowx_launcher", MODE_PRIVATE).edit()
+                        .putString("game_folder_uri", uri.toString()).apply();
+                new AlertDialog.Builder(this).setTitle("Game folder linked")
+                        .setMessage("ShadowX saved access to the selected folder.")
+                        .setPositiveButton("OK", null).show();
+            } catch (Exception e) {
+                new AlertDialog.Builder(this).setTitle("Could not save folder")
+                        .setMessage(e.getMessage()).setPositiveButton("OK", null).show();
+            }
+        }
+    }
+
+    private boolean vulkanReady() {
+        android.content.pm.FeatureInfo[] features =
+                getPackageManager().getSystemAvailableFeatures();
+        for (android.content.pm.FeatureInfo feature : features) {
+            if (PackageManager.FEATURE_VULKAN_HARDWARE_VERSION.equals(feature.name)) {
+                return feature.version >= 0x400003;
+            }
+        }
+        return false;
+    }
+
     private void play() {
+        if (!vulkanReady()) {
+            new AlertDialog.Builder(this).setTitle("Graphics compatibility warning")
+                    .setMessage("This device does not report the Vulkan 1.4.3 feature level required by this game build. The launcher can still open, but Minecraft may fail to start or render correctly.")
+                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton("Try anyway", (dialog, which) -> launchGame()).show();
+            return;
+        }
+        launchGame();
+    }
+
+    private void launchGame() {
         Intent game = new Intent(this, GameActivity.class);
         game.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(game);
@@ -215,13 +297,26 @@ public final class LauncherActivity extends Activity {
             } else {
                 String title=page==1?"INSTANCES":page==2?"MODS & PACKS":page==3?"SETTINGS":"ABOUT SHADOWX";
                 txt(c,title,pad,y+d(28),23*u,bright,true);
-                box(c,pad,y+d(50),w-pad*2,d(142),d(18),panel);
-                txt(c,page==1?"Game profiles":page==2?"Your add-ons":page==3?"Launcher preferences":"Built for your adventures",pad+d(18),y+d(83),15*u,bright,true);
-                txt(c,page==1?"Instance management is being integrated.":page==2?"Native mod support is available in the game.":page==3?"More launcher controls are coming in updates.":"ShadowX Launcher",pad+d(18),y+d(110),10*u,muted,false);
-                txt(c,page==1?"Use Play to open the installed game.":page==2?"Import compatible files from Android share.":page==3?"Open Diagnostics to inspect startup issues.":"Powered by the Starling engine.",pad+d(18),y+d(130),10*u,muted,false);
-                if(page==3) {
-                    box(c,pad,y+d(210),w-pad*2,d(50),d(14),panel2);
-                    txt(c,"RUN DIAGNOSTICS",pad+d(17),y+d(240),12*u,bright,true);
+                box(c,pad,y+d(50),w-pad*2,d(150),d(18),panel);
+                txt(c,page==1?"GAME PROFILES":page==2?"MODS & ADD-ONS":page==3?"PREFERENCES":"ABOUT SHADOWX",pad+d(18),y+d(82),12*u,purple,true);
+                txt(c,page==1?"Minecraft Java Edition":page==2?"Bring your content":page==3?"Device & launcher":"A better way to play",pad+d(18),y+d(108),17*u,bright,true);
+                txt(c,page==1?"One installed game environment is available.":page==2?"Import supported packs, mods and control files.":page==3?"Check compatibility and manage game storage.":"Built on the Starling engine.",pad+d(18),y+d(132),10*u,muted,false);
+                txt(c,page==1?"Multiple isolated instances are not enabled yet.":page==2?lastImport:page==3?(vulkanReady()?"Vulkan feature level: supported":"Vulkan 1.4.3: not reported"):"ShadowX Launcher 0.1.0",pad+d(18),y+d(154),10*u,muted,false);
+                if(page==1) {
+                    box(c,pad,y+d(218),w-pad*2,d(52),d(14),panel2);
+                    txt(c,"OPEN / SELECT GAME FOLDER",pad+d(16),y+d(249),12*u,bright,true);
+                    box(c,pad,y+d(282),w-pad*2,d(52),d(14),panel2);
+                    txt(c,"LAUNCH MINECRAFT",pad+d(16),y+d(313),12*u,bright,true);
+                } else if(page==2) {
+                    box(c,pad,y+d(218),w-pad*2,d(52),d(14),0xFF7621C6);
+                    txt(c,"＋   IMPORT FILES",pad+d(16),y+d(249),12*u,0xFFFFFFFF,true);
+                    box(c,pad,y+d(282),w-pad*2,d(52),d(52),panel2);
+                    txt(c,"SUPPORTED: ZIP • JSON • ADD-ONS",pad+d(16),y+d(313),10*u,bright,true);
+                } else if(page==3) {
+                    box(c,pad,y+d(218),w-pad*2,d(52),d(14),panel2);
+                    txt(c,"RUN DIAGNOSTICS",pad+d(16),y+d(249),12*u,bright,true);
+                    box(c,pad,y+d(282),w-pad*2,d(52),d(52),panel2);
+                    txt(c,"CHOOSE GAME FOLDER",pad+d(16),y+d(313),12*u,bright,true);
                 }
                 navTop=h-d(65);
             }
@@ -241,9 +336,14 @@ public final class LauncherActivity extends Activity {
             if(e.getAction()==MotionEvent.ACTION_UP) {
                 float w=getWidth(),h=getHeight(),pad=d(22);
                 if(page==0 && downY>=playTop-d(8) && downY<=playBottom+d(8)) { play(); return true; }
-                if(page==3 && downY> d(230) && downY<d(310)) {
+                float contentY=downY;
+                if(page==1 && contentY>d(210) && contentY<d(275)) { chooseGameFolder(); return true; }
+                if(page==1 && contentY>d(275) && contentY<d(345)) { play(); return true; }
+                if(page==2 && contentY>d(210) && contentY<d(275)) { pickImport(); return true; }
+                if(page==3 && contentY>d(210) && contentY<d(275)) {
                     startActivity(new Intent(LauncherActivity.this,DiagnosticsActivity.class)); return true;
                 }
+                if(page==3 && contentY>d(275) && contentY<d(345)) { chooseGameFolder(); return true; }
                 if(y>=navTop) {
                     int selected=Math.min(3,Math.max(0,(int)(x/(w/4f))));
                     page=selected; invalidate(); return true;
