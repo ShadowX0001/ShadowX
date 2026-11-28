@@ -345,7 +345,7 @@ impl GraphicsApi {
                 } else {
                     "OpenGL"
                 }
-            },
+            }
         }
     }
     /// The API a name stands for, ignoring case; `None` for anything else.
@@ -2301,5 +2301,4 @@ mod tests {
             assert_eq!(label, "OpenGL");
         }
     }
-
 }
