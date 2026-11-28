@@ -461,3 +461,19 @@ fn curseforge_is_coming_soon_and_never_searched() {
     assert_eq!(ids, [SourceId::Modrinth, SourceId::ShadowX]);
     assert!(source(SourceId::CurseForge).is_none());
 }
+
+
+#[test]
+fn shadowx_registry_uses_shadowx_branding() {
+    assert_eq!(SourceId::ShadowX.label(), "ShadowX");
+    assert_eq!(SourceId::Modrinth.label(), "Modrinth");
+    assert_eq!(SourceId::CurseForge.label(), "CurseForge");
+}
+
+#[test]
+fn java_loader_mods_are_described_as_ports_not_runtime_execution() {
+    let support = support(Kind::Mod, &v(&[GAME]), &v(&["fabric"]));
+    let reason = support.reason().expect("Java mods need an explicit compatibility explanation");
+    assert!(reason.contains("Java mod code does not run"));
+    assert!(reason.contains("ShadowX-native data"));
+}
