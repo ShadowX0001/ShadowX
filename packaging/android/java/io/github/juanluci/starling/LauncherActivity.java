@@ -1,6 +1,7 @@
 package dev.shadowx.launcher;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -149,10 +150,33 @@ public final class LauncherActivity extends Activity {
         return false;
     }
 
+    private int openGlEsVersion() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        if (manager == null) return 0;
+        android.content.pm.ConfigurationInfo info = manager.getDeviceConfigurationInfo();
+        return info == null ? 0 : info.reqGlEsVersion;
+    }
+
+    /** The native renderer can use GLES 3.0+ when Vulkan is unavailable. */
+    private boolean graphicsReady() {
+        return openGlEsVersion() >= 0x30000 || vulkanReady();
+    }
+
+    private String graphicsStatus() {
+        int version = openGlEsVersion();
+        if (version >= 0x30000) {
+            int major = (version >>> 16) & 0xffff;
+            int minor = version & 0xffff;
+            return "OpenGL ES " + major + "." + minor + " available";
+        }
+        if (vulkanReady()) return "Vulkan feature level reported";
+        return "No supported graphics API reported";
+    }
+
     private void play() {
-        if (!vulkanReady()) {
+        if (!graphicsReady()) {
             new AlertDialog.Builder(this).setTitle("Graphics compatibility warning")
-                    .setMessage("This device does not report the Vulkan 1.4.3 feature level required by this game build. The launcher can still open, but Minecraft may fail to start or render correctly.")
+                    .setMessage("This device does not report OpenGL ES 3.0+ or the required Vulkan feature level. ShadowX may not render correctly.")
                     .setNegativeButton("Cancel", null)
                     .setPositiveButton("Try anyway", (dialog, which) -> launchGame()).show();
             return;
@@ -224,7 +248,7 @@ public final class LauncherActivity extends Activity {
         private final RectF r = new RectF();
         private final float density;
         private int page = 0;
-        private float playTop, playBottom, navTop;
+        private float playTop, playBottom, cardsTop, cardsBottom, navTop;
         private float downX, downY;
         private final int bg = 0xFF0A0613, panel = 0xFF171024, panel2 = 0xFF211333;
         private final int purple = 0xFF9C35FF, bright = 0xFFE8D7FF, muted = 0xFFAA9BBE;
@@ -291,11 +315,12 @@ public final class LauncherActivity extends Activity {
                 box(c,pad+d(146),ground-d(18),d(52),d(18),d(5),0xFF552A79);
                 txt(c,"SHADOWX GAME ENGINE",pad+d(35),heroY+d(49),10*u,0xFFE2C9FF,true);
                 txt(c,"Ready when you are.",pad+d(35),heroY+d(70),16*u,bright,true);
-                txt(c,"Manage versions, mods and controls.",pad+d(35),heroY+d(88),10*u,muted,false);
+                txt(c,"Native game client • Controls • Diagnostics",pad+d(35),heroY+d(88),10*u,muted,false);
                 playTop=heroY+heroH+d(18); playBottom=playTop+d(58);
                 box(c,pad,playTop,w-pad*2,d(58),d(17),0xFF8D25E8);
-                center(c,"▶    OPEN SHADOWX LAUNCHER",w/2,playTop+d(36),15*u,0xFFFFFFFF,true);
+                center(c,"▶    PLAY SHADOWX",w/2,playTop+d(36),15*u,0xFFFFFFFF,true);
                 float cardsY=playBottom+d(18), gap=d(10), cardW=(w-pad*2-gap)/2;
+                cardsTop=cardsY; cardsBottom=cardsY+d(74);
                 box(c,pad,cardsY,cardW,d(74),d(15),panel);
                 box(c,pad+cardW+gap,cardsY,cardW,d(74),d(15),panel);
                 txt(c,"▦  GAME PROFILES",pad+d(13),cardsY+d(28),11*u,bright,true);
@@ -307,23 +332,23 @@ public final class LauncherActivity extends Activity {
                 txt(c,"Accounts  •  Controls  •  Performance  •  Settings",pad,infoY+d(19),10*u,muted,false);
                 navTop=h-d(65);
             } else {
-                String title=page==1?"INSTANCES":page==2?"MODS & PACKS":page==3?"SETTINGS":"ABOUT SHADOWX";
+                String title=page==1?"GAME SETUP":page==2?"IMPORT INBOX":page==3?"SETTINGS":"ABOUT SHADOWX";
                 txt(c,title,pad,y+d(28),23*u,bright,true);
                 box(c,pad,y+d(50),w-pad*2,d(150),d(18),panel);
-                txt(c,page==1?"GAME PROFILES":page==2?"MODS & ADD-ONS":page==3?"PREFERENCES":"ABOUT SHADOWX",pad+d(18),y+d(82),12*u,purple,true);
-                txt(c,page==1?"Minecraft Java Edition":page==2?"Bring your content":page==3?"Device & launcher":"A better way to play",pad+d(18),y+d(108),17*u,bright,true);
-                txt(c,page==1?"One installed game environment is available.":page==2?"Import supported packs, mods and control files.":page==3?"Check compatibility and manage game storage.":"Built on the Starling engine.",pad+d(18),y+d(132),10*u,muted,false);
-                txt(c,page==1?"Multiple isolated instances are not enabled yet.":page==2?lastImport:page==3?(vulkanReady()?"Vulkan feature level: supported":"Vulkan 1.4.3: not reported"):"ShadowX Launcher 0.1.0",pad+d(18),y+d(154),10*u,muted,false);
+                txt(c,page==1?"GAME PROFILE":page==2?"PRIVATE IMPORT INBOX":page==3?"PREFERENCES":"ABOUT SHADOWX",pad+d(18),y+d(82),12*u,purple,true);
+                txt(c,page==1?"ShadowX native client":page==2?"Stage files for review":page==3?"Device & launcher":"A better way to play",pad+d(18),y+d(108),17*u,bright,true);
+                txt(c,page==1?"One native game profile is available.":page==2?"Imported files are staged, not installed automatically.":page==3?"Check compatibility and manage game storage.":"Built on the Starling engine.",pad+d(18),y+d(132),10*u,muted,false);
+                txt(c,page==1?"Android Java Edition runtime is not enabled yet.":page==2?lastImport:page==3?graphicsStatus():"ShadowX Launcher 0.1.0",pad+d(18),y+d(154),10*u,muted,false);
                 if(page==1) {
                     box(c,pad,y+d(218),w-pad*2,d(52),d(14),panel2);
-                    txt(c,"OPEN / SELECT GAME FOLDER",pad+d(16),y+d(249),12*u,bright,true);
+                    txt(c,"SELECT GAME FOLDER (SAVE ACCESS)",pad+d(16),y+d(249),11*u,bright,true);
                     box(c,pad,y+d(282),w-pad*2,d(52),d(14),panel2);
-                    txt(c,"LAUNCH MINECRAFT",pad+d(16),y+d(313),12*u,bright,true);
+                    txt(c,"PLAY SHADOWX NATIVE CLIENT",pad+d(16),y+d(313),11*u,bright,true);
                 } else if(page==2) {
                     box(c,pad,y+d(218),w-pad*2,d(52),d(14),0xFF7621C6);
-                    txt(c,"＋   IMPORT FILES",pad+d(16),y+d(249),12*u,0xFFFFFFFF,true);
+                    txt(c,"＋   IMPORT TO INBOX",pad+d(16),y+d(249),12*u,0xFFFFFFFF,true);
                     box(c,pad,y+d(282),w-pad*2,d(52),d(52),panel2);
-                    txt(c,"SUPPORTED: ZIP • JSON • ADD-ONS",pad+d(16),y+d(313),10*u,bright,true);
+                    txt(c,"STAGED ONLY • NOT INSTALLED",pad+d(16),y+d(313),10*u,bright,true);
                 } else if(page==3) {
                     box(c,pad,y+d(218),w-pad*2,d(52),d(14),panel2);
                     txt(c,"RUN DIAGNOSTICS",pad+d(16),y+d(249),12*u,bright,true);
@@ -358,12 +383,16 @@ public final class LauncherActivity extends Activity {
                 if(page==3 && contentY>d(370) && contentY<d(445)) { chooseGameFolder(); return true; }
                 if(y>=navTop) {
                     int selected=Math.min(3,Math.max(0,(int)(x/(w/4f))));
-                    if (selected == 0) { page=0; invalidate(); }
-                    else { launchGame(); }
+                    page = selected;
+                    invalidate();
+                    return true;
+                }
+                if(page==0 && downY>=cardsTop && downY<=cardsBottom) {
+                    page = downX < w / 2f ? 1 : 2;
+                    invalidate();
                     return true;
                 }
                 if(page!=0 && downY<d(100)) { page=0; invalidate(); return true; }
-                if(page==0 && downY>playBottom) { launchGame(); return true; }
                 performClick(); return true;
             }
             return true;
