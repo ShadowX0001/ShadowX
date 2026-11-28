@@ -466,7 +466,6 @@ fn curseforge_is_enabled_only_when_an_api_key_is_configured() {
     );
 }
 
-
 #[test]
 fn shadowx_registry_uses_shadowx_branding() {
     assert_eq!(SourceId::ShadowX.label(), "ShadowX");
@@ -477,7 +476,9 @@ fn shadowx_registry_uses_shadowx_branding() {
 #[test]
 fn java_loader_mods_are_described_as_ports_not_runtime_execution() {
     let support = support(Kind::Mod, &v(&[GAME]), &v(&["fabric"]));
-    let reason = support.reason().expect("Java mods need an explicit compatibility explanation");
+    let reason = support
+        .reason()
+        .expect("Java mods need an explicit compatibility explanation");
     assert!(reason.contains("Java mod code does not run"));
     assert!(reason.contains("ShadowX-native data"));
 }
