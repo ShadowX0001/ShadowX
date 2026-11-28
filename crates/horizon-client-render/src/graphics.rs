@@ -339,7 +339,7 @@ impl GraphicsApi {
             GraphicsApi::Auto => "Auto",
             GraphicsApi::Vulkan => "Vulkan",
             GraphicsApi::Dx12 => "DirectX 12",
-            GraphicsApi::OpenGl => "OpenGL",
+            GraphicsApi::OpenGl => if cfg!(target_os = "android") { "OpenGL ES 3.0+" } else { "OpenGL" },
         }
     }
     /// The API a name stands for, ignoring case; `None` for anything else.
