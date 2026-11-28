@@ -339,7 +339,13 @@ impl GraphicsApi {
             GraphicsApi::Auto => "Auto",
             GraphicsApi::Vulkan => "Vulkan",
             GraphicsApi::Dx12 => "DirectX 12",
-            GraphicsApi::OpenGl => if cfg!(target_os = "android") { "OpenGL ES 3.0+" } else { "OpenGL" },
+            GraphicsApi::OpenGl => {
+                if cfg!(target_os = "android") {
+                    "OpenGL ES 3.0+"
+                } else {
+                    "OpenGL"
+                }
+            },
         }
     }
     /// The API a name stands for, ignoring case; `None` for anything else.
@@ -2285,4 +2291,15 @@ mod tests {
         assert_eq!(g.battery_limit(260, true, false), 30);
         assert_eq!(g.battery_limit(10, true, false), 10);
     }
+
+    #[test]
+    fn opengl_choice_names_the_android_api_precisely() {
+        let label = GraphicsApi::OpenGl.label();
+        if cfg!(target_os = "android") {
+            assert_eq!(label, "OpenGL ES 3.0+");
+        } else {
+            assert_eq!(label, "OpenGL");
+        }
+    }
+
 }
