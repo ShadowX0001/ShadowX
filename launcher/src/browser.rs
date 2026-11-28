@@ -75,7 +75,7 @@ impl Kind {
 pub enum SourceId {
     Modrinth,
     CurseForge,
-    /// Horizon's registry of reviewed mods, modpacks and resource packs ([`horizon`]).
+    /// ShadowX's registry of reviewed mods, modpacks and resource packs ([`horizon`]).
     #[serde(alias = "horizon")]
     ShadowX,
 }
@@ -85,12 +85,12 @@ impl SourceId {
         match self {
             SourceId::Modrinth => "Modrinth",
             SourceId::CurseForge => "CurseForge",
-            SourceId::ShadowX => "Horizon",
+            SourceId::ShadowX => "ShadowX",
         }
     }
 
     /// The source a list names after the author ("from {source}") for project `id`: Modrinth and
-    /// CurseForge always, Horizon's registry only for Horizon's own projects
+    /// CurseForge always, ShadowX's registry only for ShadowX's own projects
     /// ([`horizon::official`]), so a contributor's project reads "by <author>" alone.
     pub fn shown_for(self, id: &str) -> Option<&'static str> {
         match self {
@@ -341,7 +341,7 @@ pub fn support(kind: Kind, game_versions: &[String], loaders: &[String]) -> Supp
                 ))
             } else {
                 Support::Partial(
-                    "Not checked yet: the launcher reads its jar to say what of it ports.".into(),
+                    "Java mod code does not run in ShadowX. The launcher inspects this JAR and ports only the supported content into ShadowX-native data.".into(),
                 )
             }
         }
